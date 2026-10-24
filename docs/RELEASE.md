@@ -12,13 +12,15 @@ README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.
 演示数据清单已清理或明确示例环境：演示数据**明确标注**——`live.js` 在界面顶部插横幅「演示数据 · 内容为虚构示例，不是真实病例。v0.1.0-dev」；导出 Markdown 也标注演示数据
 数据库迁移与旧包兼容：`schema/migrations/0001_initial.sql`（冻结，只增不改）；`dsh/store.js` 按目录递增迁移并写 `schema_migrations`；**首次安装无旧库**，向后兼容从 0002 起算
 可用备份：安装前已备份 profile 清单到 `/tmp/hn-profile-package.json.bak`
+
+**重装注意**：profile 的 `packageManager` 是 `pnpm@10.34.5`，而 `which pnpm` 可能指向 9.x（会报 store 主版本不匹配）。用 `~/.nvm/versions/node/v22.19.0/bin/pnpm`。同名同版本 tgz 换了内容时 pnpm 会说 `Already up to date`，必须 `pnpm remove -w <pkg>` 再 `add` 才会真正替换。
 市场分发来源：**不投稿**（未授权）——手工 tgz 安装，市场目录无条目
 
 若任务要求本机更新：最终已安装版本 **0.1.0** ／ Profile `~/Library/Application Support/dsh-desktop/harness/profiles/web` ／ **打开确认本次修改：未验证（需重启）**。仅安装了包并登记 bundles，未重启 Harness，因此**不能声称界面已加载**。
 
 | 动作 | 目标 | 真实结果/URL/证据 | 状态 |
 | --- | --- | --- | --- |
-| 本地安装 | Desktop/profile | `pnpm add -w` 装入 `profiles/web`，并写入 `dsh.profile.bundles`；`check-install.mjs` ✓；探针 4 路由 200 | **已执行，界面待重启验收** |
+| 本地安装 | Desktop/profile | `pnpm add -w` 装入 `profiles/web`，并写入 `dsh.profile.bundles`（34 项，改前改后一致）；`check-install.mjs` ✓；装机副本 `diff -r` 与 tgz **0 差异**；`probe:restart` **PASS**；`probe:routes` **PASS**（7 组路由） | **已执行，界面待重启验收** |
 | Git push | 远端/分支/commit | **无 remote**（`git remote -v` 为空），远端仓未建 | 未执行（未授权） |
 | Release/npm | tag/产物/hash | tgz 已产出，SHA-256 `cbe00798…`；未打 tag、未建 Release | 未执行（未授权） |
 | 市场 PR | 官方目录仓库 | — | 未执行（未授权） |
