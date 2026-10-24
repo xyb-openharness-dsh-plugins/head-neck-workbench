@@ -1,7 +1,7 @@
 # 验收记录
 
 代码版本/commit/dirty 状态：`5f720dd`（M5a）+ 本轮未提交改动（M5b–M5d 新增 `dsh/store.js`、`dsh/server.js`、`dsh/seed-demo.js`、`public/`、`schema/migrations/`、`lib/client.js` 重写）
-包名称/版本/tgz/SHA-256：`@xyb-community/head-neck-workbench` 0.1.0 ／ `release/xyb-community-head-neck-workbench-0.1.0.tgz` ／ `cbe0079808098ffb202c9d846c677c24b64e9a611c7fd21ac21ec7fcafd0f0ed`（27 文件，含 `public/` 与 `schema/migrations/`）
+包名称/版本/tgz/SHA-256：`@xyb-community/head-neck-workbench` 0.1.0 ／ `release/xyb-community-head-neck-workbench-0.1.0.tgz` ／ `b610a578c79dccdc59c6562e3a524b2babb2b421992998c9fd97b7e30970ee76`（27 文件，含 `public/` 与 `schema/migrations/`）
 Desktop 版本/OS/架构/Node：DSH Desktop（`/Applications/DeepSeek Harness.app`）／ macOS／ arm64／ Node **v22.19.0**（`node:sqlite` 可用）
 安装入口/实际 profile/执行位置：`pnpm add -w` 到 `~/Library/Application Support/dsh-desktop/harness/profiles/web`，并写入该 profile 的 `dsh.profile.bundles`
 Agent 是否运行在目标 Desktop 内：**是**——所以本 Agent 不自行关闭/重启该应用，重启与真机界面验收交由用户完成
@@ -11,11 +11,11 @@ Agent 是否运行在目标 Desktop 内：**是**——所以本 Agent 不自行
 | ACC-00 | 静态 | `dsh-wb-cli audit` 无 fail；warn 逐条给结论 | `check-workbench-package` → `staticPass: true`、`errors: []`；3 条 warn 已逐条归因（见下） | `npm run check` | 通过 |
 | ACC-01 | 静态 | 语法/类型/包合同/清单 | `node --check` 通过（`dsh/index.js`、`lib/client.js`）；`check-version` 三处同源 0.1.0；`check-wording` 64 文件 0 违规；`build-public --check` 同步；单测 6/6；conformance 31/33（0 失败 · 2 待人工） | `npm run check` 退出码 0 | 通过 |
 | ACC-02 | 集成 | 代表业务链与迁移/主体隔离 | 空库启动 → 自动迁移 **46 表** → `/seed` 写入演示主体（8 指标 / 56 观察）→ PATCH 关切后 sqlite3 直查落盘（`cn-1\|1`）→ `change_log` 3 条；`/bootstrap?subject=` 按主体隔离返回 | `scripts/verify-live.py` 8/8；`node /tmp/hn-installed-probe2.mjs` | 通过 |
-| ACC-03 | 包 | 从实际 tgz 安装，版本/hash 一致 | tgz SHA-256 `cbe00798…`；装机副本 `package.json` 版本 0.1.0；`check-install.mjs` → ✓ 已登记到 Desktop 实际加载的 profile | `node scripts/check-install.mjs` | 通过 |
+| ACC-03 | 包 | 从实际 tgz 安装，版本/hash 一致 | tgz SHA-256 `b610a578…`；装机副本 `package.json` 版本 0.1.0；`check-install.mjs` → ✓ 已登记到 Desktop 实际加载的 profile | `node scripts/check-install.mjs` | 通过 |
 | ACC-04 | UI | 已安装列表→左侧入口→业务页 | **未验证**：需用户完整退出并重开 Desktop 后才有界面 | — | 未验证（需重启） |
 | ACC-05 | UI | 无会话可用，所选布局和原生会话 | **未验证**：同上；外壳代码已就位（`customFrame: true`、`businessWidth: 0.72`） | `lib/client.js` | 未验证（需重启） |
-| ACC-06 | UI | 一级/二级页与配置弹窗逐项对照 | 业务页部分**已通过**：原型 10 一级 / 34 二级全渲、无 undefined/NaN、鼻咽档案 33 二级且「手术」隐藏、「放疗」置首；装机后的界面**未验证** | `verify_prototype.py` 24/24 | 部分通过（界面待重启） |
-| ACC-07 | UI | 窄容器/大字/翻面/趋势/键盘 | 原型层通过：390 宽无横向溢出、指标卡固定高 276、翻面 `aria-pressed` 单卡布尔、一图秀 C1–C12 实测；装机界面**未验证** | `verify-live.py` 判据 5；`measure-one-chart.py` | 部分通过（界面待重启） |
+| ACC-06 | UI | 一级/二级页与配置弹窗逐项对照 | **业务页已在装机产物上通过**：原型 10 一级 / 34 二级全渲、无 undefined/NaN、鼻咽档案 33 二级且「手术」隐藏、「放疗」置首；**装机副本本体**用真 Chrome 逐个点开 10 一级 / 34 二级，0 未捕获异常 / 0 console error / 0 失败请求 / 无「本页签尚未实现」空态（`verify-tabs-on-artifact.py`）。仍未验证的是**宿主外壳里**的界面（需重启） | `verify_prototype.py` 24/24；`verify-tabs-on-artifact.py` | 通过（产物层）；宿主界面待重启 |
+| ACC-07 | UI | 窄容器/大字/翻面/趋势/键盘 | 原型层通过：390 宽无横向溢出、指标卡固定高 276、翻面 `aria-pressed` 单卡布尔、一图秀 C1–C12 实测；**产物层** 390 宽 `scrollWidth=390=innerWidth` 不溢出；宿主外壳内界面**未验证** | `verify-live.py` 判据 5；`measure-one-chart.py`；`verify-tabs-on-artifact.py` | 部分通过（界面待重启） |
 | ACC-08 | 跨页 | 单一事实新增后各页一致 | 通过：新增关切后首页未问数、关切清单、复诊摘要同源（`verify-live.py` 判据 3 + 判据 4 写回后回拉） | `scripts/verify-live.py` | 通过 |
 | ACC-09 | 文件 | 预览/解析/确认/导出真实格式/回顾 | 导出**通过**（`/export?format=md` 生成中文 Markdown）；报告解析**未接通**（`docs/18-MINERU-PARSING.md` 本轮只留接口，DESIGN-07 严格停 phase1 的延续） | `dsh/server.js` `exportMarkdown()` | 部分通过（解析未做） |
 | ACC-10 | 外部 | API/MCP/cron 实际链路与失败恢复 | **不适用**：本项目无外部 API/MCP/cron 依赖（M4 试验库不适用，见 `docs/DEV-PLAN.md` §三） | — | 不适用 |
@@ -56,7 +56,7 @@ Agent 是否运行在目标 Desktop 内：**是**——所以本 Agent 不自行
 | --- | --- | --- | --- |
 | ACC-24 | 记录本机安装 / Git 推送 / GitHub Release / 市场PR分别完成到哪一步；未授权项为不适用 | 本机安装：**已完成**（profile 已登记）；Git 推送：**未授权**；GitHub Release：**未授权**；市场 PR：**未授权** | 部分完成 |
 | ACC-25 | 市场安装来源与条目一致；Release只有在YAML显式tarball时才是所选来源，否则按目录协议使用源码或npm | 手工/native 安装，无市场条目（`check-install.mjs` 已提示「市场里可能不显示已安装」） | 不适用 |
-| ACC-26 | 包版本、客户端版本、实际安装副本、tar hash一致；Desktop运行界面加载单独确认 | 包版本 0.1.0 = 客户端 `VERSION` = 装机副本 `package.json`；tar hash `cbe00798…`；**装机副本与 release tgz 逐文件 `diff -r` 0 差异**；装机副本本体跑 `probe:restart` **PASS**（46 表 → 种子 → 写入 → 重开仍在）；`cordis.patch.yml` 有 `root: !!js dshHomePath('head-neck-workbench')`（真持久目录，非内存库）；profile `package.json` 既在 dependencies（`file:…/release/*.tgz`）又在 `dsh.profile.bundles`；**界面加载：实测确认「尚未加载」**——宿主 harness 启动于 `2026-10-25 01:33:58`，插件装机于 `2026-10-25 02:18:55`（**晚 45 分钟**），且 `harness/head-neck-workbench/` 数据目录**从未生成**（`dshHomePath` 目录在 store 首次打开时才建）→ 证明插件从未被宿主加载。必须重启 Desktop 才会加载；`/api/*` 另有全局鉴权，401 不能用于判断。**业务可用已在产物层验**：`npm run probe:routes` 对装机副本起临时服务，7 组路由全通（含 export 两种格式、UI 静态与 302、前缀归一化），`test/routes.test.mjs` 5 条锁进 `npm run check` | `diff -r` + `npm run probe:restart "<装机目录>"` | 部分通过（仅界面加载待验） |
+| ACC-26 | 包版本、客户端版本、实际安装副本、tar hash一致；Desktop运行界面加载单独确认 | 包版本 0.1.0 = 客户端 `VERSION` = 装机副本 `package.json`；tar hash `b610a578…`；**装机副本与 release tgz 逐文件 `diff -r` 0 差异**；装机副本本体跑 `probe:restart` **PASS**（46 表 → 种子 → 写入 → 重开仍在）；`cordis.patch.yml` 有 `root: !!js dshHomePath('head-neck-workbench')`（真持久目录，非内存库）；profile `package.json` 既在 dependencies（`file:…/release/*.tgz`）又在 `dsh.profile.bundles`；**界面加载：实测确认「尚未加载」**——宿主 harness 启动于 `2026-10-25 01:33:58`，插件装机于 `2026-10-25 02:18:55`（**晚 45 分钟**），且 `harness/head-neck-workbench/` 数据目录**从未生成**（`dshHomePath` 目录在 store 首次打开时才建）→ 证明插件从未被宿主加载。必须重启 Desktop 才会加载；`/api/*` 另有全局鉴权，401 不能用于判断。**业务可用已在产物层验**：`npm run probe:routes` 对装机副本起临时服务，7 组路由全通（含 export 两种格式、UI 静态与 302、前缀归一化），`test/routes.test.mjs` 5 条锁进 `npm run check` | `diff -r` + `npm run probe:restart "<装机目录>"` | 部分通过（仅界面加载待验） |
 | ACC-27 | 真实市场PR URL、最新检查、合并状态、目录可见和市场可安装分别记录；不得把PR提交称为已上架 | **不适用**：未投稿 | 不适用 |
 
 ## DSH 原生 Agent 对话

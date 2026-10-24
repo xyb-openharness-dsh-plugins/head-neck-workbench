@@ -14,7 +14,7 @@
 | M3 | 数据模型 | **完成（G3 已冻结）** | `schema/migrations/0001_initial.sql`（46 表 / 63 索引 / 35 表带 CHECK）；`check-schema-draft.mjs` 24/24 |
 | M4 | 临床库（本癌种 2026 试验数据） | **不适用** | 场景 L10 裁决「不上临床试验入口」；`web_search` 把 head-and-neck 解析成运动品牌 HEAD，无可信通道 |
 | M5 | 开发版（生产业务实现） | **代码完成，待真机验收** | `lib/client.js` customFrame 外壳、`dsh/store.js`（46 表迁移+种子）、`dsh/server.js`（7 组路由）、`public/live.js` 读写闭环；`verify-live.py` 8/8；`npm run check` 全绿 |
-| M6 | 装机（实际包/Profile/版本核验） | **已装待验收** | `release/…0.1.0.tgz`（SHA-256 `cbe00798…`）；已入 Desktop profile 的 `dsh.profile.bundles`；`check-install.mjs` ✓；装机副本与 tgz `diff -r` 0 差异；`probe:restart` PASS（46 表/种子/写入/重开仍在）；`probe:routes` PASS（7 组路由，含 export 两格式、UI 302、422+field 映射） |
+| M6 | 装机（实际包/Profile/版本核验） | **已装待验收** | `release/…0.1.0.tgz`（SHA-256 `b610a578…`）；已入 Desktop profile 的 `dsh.profile.bundles`；`check-install.mjs` ✓；装机副本与 tgz `diff -r` 0 差异；`probe:restart` PASS（46 表/种子/写入/重开仍在）；`probe:routes` PASS（7 组路由，含 export 两格式、UI 302、422+field 映射）；**`verify-tabs-on-artifact.py` PASS**——对装机副本本体用真 Chrome 逐个点开 10 一级 / 34 二级，0 异常/0 console error/0 失败请求/无空态/390 宽不溢出 |
 | M7 | 发布（tag/包 hash/市场） | **未开始** | 未授权 |
 
 ## 闸口
