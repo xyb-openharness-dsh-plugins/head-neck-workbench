@@ -1,0 +1,3 @@
+- insert:
+    - id: head-neck-workbench-main
+      name: "@xyb-community/head-neck-workbench"
