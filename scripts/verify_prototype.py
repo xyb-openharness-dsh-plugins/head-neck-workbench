@@ -103,6 +103,27 @@ with sync_playwright() as p:
     }""")
     ok('近 3 月窗口数据点少于全部', win['m3'] < win['all'], str(win))
 
+    # C6：末点标签不得画出 viewBox（修前实测 3 个越界）
+    lab = page.evaluate("""() => {
+      STATE.page='metrics'; STATE.tab='一图秀'; STATE.win='all'; STATE.chartCodes=['weight','alb','hb']; render();
+      const svg = document.querySelector('#chartHost svg');
+      const vb = svg.getAttribute('viewBox').split(' ').map(Number);
+      const out = [...svg.querySelectorAll('text')].filter(t => {
+        const b = t.getBBox();
+        return b.x < 0 || b.y < 0 || b.x + b.width > vb[2] || b.y + b.height > vb[3];
+      });
+      return {out: out.length, total: svg.querySelectorAll('text').length};
+    }""")
+    ok('末点数值标签不越界（C6）', lab['out'] == 0, str(lab))
+
+    # 指标卡数量 = 指标定义数（本癌种 8 项）
+    cards = page.evaluate("""() => {
+      STATE.page='metrics'; STATE.tab='指标卡片'; render();
+      return {cards: document.querySelectorAll('.metric-card').length,
+              metrics: SUBJ().metrics.length};
+    }""")
+    ok('指标卡数量与指标定义一致', cards['cards'] == cards['metrics'] and cards['cards'] == 8, str(cards))
+
     # 关切清单
     page.evaluate("""() => { STATE.page='late'; STATE.tab='关切清单'; render(); }""")
     n0 = page.locator('#concernHost .concern').count()

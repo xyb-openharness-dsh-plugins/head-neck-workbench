@@ -1,7 +1,7 @@
 # 实施任务与当前交接
 
 规格版本：`docs/SPEC.md` v0.1 草案（未签认）
-原型 hash：`a395b41755b3b37232201ac1d887b009d713118b71471667b24e48062c26d0f5`（`prototypes/v0.1/index.html`）
+原型 hash：`75deabb76e41d05d4f364c056e40ef4d22d05e66d17e5ffb81ce2895479c124d`（`prototypes/v0.1/index.html`）
 当前分支：`main`（本地）· 远端仓：**未建**
 
 ## 里程碑（M0–M7）

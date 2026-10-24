@@ -359,6 +359,10 @@ const DEMO = {
       { code:'weight', label:'体重', unit:'kg', track:'C', grade:'无', chartable:true },
       { code:'alb', label:'白蛋白', unit:'g/L', track:'A', grade:'CTCAE v5.0', chartable:true },
       { code:'hb', label:'血红蛋白', unit:'g/L', track:'A', grade:'CTCAE v5.0', chartable:true },
+      { code:'cr', label:'肌酐', unit:'μmol/L', track:'A', grade:'CTCAE v5.0', chartable:true },
+      { code:'tsh', label:'促甲状腺素', unit:'mIU/L', track:'B', grade:'无', chartable:true },
+      { code:'mouth', label:'张口度', unit:'mm', track:'D', grade:'无', chartable:true },
+      { code:'anc', label:'中性粒细胞绝对值', unit:'10⁹/L', track:'A', grade:'CTCAE v5.0', chartable:true },
       { code:'mucositis', label:'口腔黏膜炎', unit:'WHO 分级', track:'D', grade:'WHO', chartable:false }
     ],
     obs:[
@@ -375,7 +379,20 @@ const DEMO = {
       { code:'hb', on:'2026-06-22', v:118, lab:'演示医院检验科', method:'血细胞分析' },
       { code:'hb', on:'2026-07-25', v:109, lab:'演示医院检验科', method:'血细胞分析' },
       { code:'hb', on:'2026-08-22', v:104, lab:'演示医院检验科', method:'血细胞分析' },
-      { code:'hb', on:'2026-09-20', v:101, lab:'演示社区医院', method:'血细胞分析' }
+      { code:'hb', on:'2026-09-20', v:101, lab:'演示社区医院', method:'血细胞分析' },
+      { code:'cr', on:'2026-06-22', v:78, lab:'演示医院检验科', method:'酶法' },
+      { code:'cr', on:'2026-07-25', v:84, lab:'演示医院检验科', method:'酶法' },
+      { code:'cr', on:'2026-08-22', v:91, lab:'演示医院检验科', method:'酶法' },
+      { code:'cr', on:'2026-09-20', v:96, lab:'演示社区医院', method:'苦味酸法' },
+      { code:'tsh', on:'2026-06-22', v:2.1, lab:'演示医院检验科', method:'化学发光' },
+      { code:'tsh', on:'2026-09-20', v:4.8, lab:'演示医院检验科', method:'化学发光' },
+      { code:'mouth', on:'2026-06-22', v:42, lab:'—', method:'门诊量尺' },
+      { code:'mouth', on:'2026-07-25', v:38, lab:'—', method:'门诊量尺' },
+      { code:'mouth', on:'2026-08-22', v:35, lab:'—', method:'门诊量尺' },
+      { code:'mouth', on:'2026-09-20', v:33, lab:'—', method:'门诊量尺' },
+      { code:'anc', on:'2026-06-22', v:2.4, lab:'演示医院检验科', method:'血细胞分析' },
+      { code:'anc', on:'2026-07-25', v:1.6, lab:'演示医院检验科', method:'血细胞分析' },
+      { code:'anc', on:'2026-08-22', v:1.1, lab:'演示医院检验科', method:'血细胞分析' }
     ],
     mucositis:[
       { on:'2026-05-20', grade:1, form:'普通', note:'红斑，轻微疼痛' },
@@ -440,13 +457,16 @@ const DEMO = {
     dental:[], trismus:[{ on:'2026-09-01', mm:38 }],
     metrics:[
       { code:'weight', label:'体重', unit:'kg', track:'C', grade:'无', chartable:true },
-      { code:'hb', label:'血红蛋白', unit:'g/L', track:'A', grade:'CTCAE v5.0', chartable:true }
+      { code:'hb', label:'血红蛋白', unit:'g/L', track:'A', grade:'CTCAE v5.0', chartable:true },
+      { code:'anc', label:'中性粒细胞绝对值', unit:'10⁹/L', track:'A', grade:'CTCAE v5.0', chartable:true }
     ],
     obs:[
       { code:'weight', on:'2026-04-20', v:58.0, lab:'—', method:'家用体重秤' },
       { code:'weight', on:'2026-06-30', v:54.5, lab:'—', method:'家用体重秤' },
       { code:'weight', on:'2026-09-01', v:55.8, lab:'—', method:'家用体重秤' },
-      { code:'hb', on:'2026-06-30', v:112, lab:'演示医院检验科', method:'血细胞分析' }
+      { code:'hb', on:'2026-06-30', v:112, lab:'演示医院检验科', method:'血细胞分析' },
+      { code:'anc', on:'2026-06-30', v:1.8, lab:'演示医院检验科', method:'血细胞分析' },
+      { code:'anc', on:'2026-09-01', v:1.2, lab:'演示医院检验科', method:'血细胞分析' }
     ],
     mucositis:[{ on:'2026-06-10', grade:2, form:'半流质', note:'溃疡，只能吃半流质' }],
     concerns:[{ id:'d1', text:'放疗后耳朵闷，要不要紧', kind:'要问的问题', asked:0, answer:null, addressed:0, vis:'private' }],
@@ -673,9 +693,11 @@ function chartSVG(codes, W, H){
     pts.forEach(p=>{
       out += `<circle cx="${X(p.on).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3.2" fill="#fff" stroke="${col}" stroke-width="2"><title>${esc(mo?mo.label:code)} ${p.v}${esc(mo?mo.unit:'')} · ${p.on}</title></circle>`;
     });
-    // 末点标签
+    // 末点标签：靠右边界时改为左挂（anchor=end），否则数字会画到 viewBox 外面
     const last = pts[pts.length-1];
-    out += `<text x="${(X(last.on)+6).toFixed(1)}" y="${(yOf(last.v)-5).toFixed(1)}" font-size="10" fill="${col}" font-weight="600">${last.v}</text>`;
+    const lx = X(last.on), ly = yOf(last.v)-5;
+    const nearRight = lx > W - P.r - 30;
+    out += `<text x="${(nearRight ? lx-6 : lx+6).toFixed(1)}" y="${ly.toFixed(1)}" font-size="10" fill="${col}" font-weight="600"${nearRight?' text-anchor="end"':''}>${last.v}</text>`;
   });
   // 轴
   out += `<line x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}" stroke="#c9c5b8"/>`;
