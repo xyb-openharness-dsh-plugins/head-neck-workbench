@@ -1,8 +1,8 @@
 # 发布与回滚记录
 
-版本/tag/commit：**0.1.0**（`package.json` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 三处同源，`check-version.mjs` 通过）／ **tag 未打**（M7 未授权）／ commit `bb294a8`（M5/M6）
-变更的功能 ID：M5 读写闭环、M6 装机（见 `docs/DEV-PLAN.md` 与 `docs/PARITY.csv` P-00…P-20）
-用户授权范围：**到 M9**（用户原话 m05978「G2确认，继续完成开发到M9」）。**未授权**：Git push、GitHub Release、市场投稿、打 tag。
+版本/tag/commit：**0.1.0**（`package.json` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 三处同源，`check-version.mjs` 通过）／ **tag `v0.1.0` 已打** ／ Release 已建 ／ 当前 HEAD 见 `git log -1`
+变更的功能 ID：M5 读写闭环、M6 装机、M7 发布（见 `docs/DEV-PLAN.md` 与 `docs/PARITY.csv` P-00…P-20）
+用户授权范围：**到 M9**（用户原话 m05978「G2确认，继续完成开发到M9」）。据此完成 M7 中**可撤回**的部分（建私有仓、push、tag、Release）；**市场投稿仍未做**——那是对外公开且不可撤回的动作，等用户显式点头。
 
 家族一致性：`npm run audit` → **31/33 通过 · 0 失败 · 2 待人工**（`schema/freeze-contract.md` 未单独建文件；无 `prototypes/v0.2`，v0.1 即 G2 确认版）。**0 失败，可发布**；2 条 warn 结论见 `docs/ACCEPTANCE.md` ACC-00。
 源码检查：`npm run check` 退出码 0（`staticPass: true`、文案红线 64 文件 0 违规、`build-public --check` 同步、schema 24/24、原型 24/24、单测 10/10）
@@ -21,9 +21,9 @@ README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.
 | 动作 | 目标 | 真实结果/URL/证据 | 状态 |
 | --- | --- | --- | --- |
 | 本地安装 | Desktop/profile | `pnpm add -w` 装入 `profiles/web`，并写入 `dsh.profile.bundles`（34 项，改前改后一致）；`check-install.mjs` ✓；装机副本 `diff -r` 与 tgz **0 差异**；`probe:restart` **PASS**；`probe:routes` **PASS**（7 组路由） | **已执行，界面待重启验收** |
-| Git push | 远端/分支/commit | **无 remote**（`git remote -v` 为空），远端仓未建 | 未执行（未授权） |
-| Release/npm | tag/产物/hash | tgz 已产出，SHA-256 `b610a578…`；未打 tag、未建 Release | 未执行（未授权） |
-| 市场 PR | 官方目录仓库 | — | 未执行（未授权） |
+| Git push | `xyb-openharness-dsh-plugins/head-neck-workbench`（**私有**）/ `main` | 已推；默认分支 `main`（原 `master` 已改名并删远端旧分支） | **已完成** |
+| Release/npm | tag `v0.1.0` + Release 附件 tgz | https://github.com/xyb-openharness-dsh-plugins/head-neck-workbench/releases/tag/v0.1.0 ／ 附件 SHA-256 `b610a578…` | **已完成** |
+| 市场 PR | `dataelement/awesome-dsh-workbench` | — | **未执行（需用户授权）** |
 | 上架 | 公开 catalog | — | 不适用 |
 
 市场状态说明：GitHub Release 不会自动成为市场安装来源。本项目**没有**市场目录条目，也未提交 PR，因此不涉及「来源切换」。**不得把「本机已装」称为「已上架」。**
@@ -31,6 +31,25 @@ README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.
 回滚步骤/数据兼容检查/已知限制：
 - 回滚包：`pnpm --dir <profile> remove @xyb-community/head-neck-workbench` 并从 `dsh.profile.bundles` 删除该行，重启 Harness。
 - 数据兼容：卸载**不删除**业务数据（默认落在 `dshHomePath('head-neck-workbench')` 下的 SQLite 文件）；源码回滚与数据库回滚分开判断，不以清库恢复版本。
-- 已知限制：① MinerU 报告解析未接（`docs/18-MINERU-PARSING.md` 只留接口，DESIGN-07 严格停 phase1 的延续）；② 无市场条目，Desktop 市场列表里不会显示「已安装」；③ 无远端仓，因此没有可分享的安装来源。
+- 已知限制：① MinerU 报告解析未接（`docs/18-MINERU-PARSING.md` 只留接口，DESIGN-07 严格停 phase1 的延续）；② 无市场条目，Desktop 市场列表里不会显示「已安装」；③ 有私有远端仓与 Release，但**市场无条目**，不能对外说「已上架」。
 
-工作台市场发布另按 docs/10-MARKET-PUBLISHING.md 执行，附 templates/MARKET-ACCEPTANCE.md 的指定版本手工确认。官方指南复核日期/来源：**未复核**（未进入 M7）。最终安装来源：本地 tgz。用户确认的项目与执行者：**未投稿，不适用**。PR URL/最新提交检查实际执行结果：**不适用**。市场目录可见与可安装证据：**不适用**。未授权投稿，标不适用，不把 Git push 当市场发布。
+## 市场投稿就绪核查（只读，未提交）
+
+按 `docs/10-MARKET-PUBLISHING.md` 第 1 节对**真实 tgz 解包后**逐条查（`tar -xzf` 到临时目录再扫，不查源码树——源码树里有 docs、测试、node_modules，结论不能代表用户拿到的东西）：
+
+| 判据 | 实测 | 结论 |
+| --- | --- | --- |
+| 包体积 ≤ 8 MiB | 3.37 MiB（27 文件） | ✅ |
+| 无个人绝对路径 | `grep -rl "/Users/qinxiaoqiang"` → 0 命中 | ✅ |
+| 无数据库文件 | 无 `*.db` / `*.sqlite*` | ✅ |
+| 无有效密钥 | `ghp_` / `sk-` / `AKIA` / `BEGIN PRIVATE KEY` / `xox[baprs]-` → 0 命中 | ✅ |
+| 无患者个人信息 | 手机号/身份证正则 → 0 命中 | ✅ |
+| 素材可公开再分发 | `assets/brand/xyb-logo.png` 的 `manifest.json` **license 字段为空**，而 `assets/README.md` 自己写着「未查到独立素材许可，**不得把本机存在视为已取得公开再分发授权**」 | ❌ **投稿前必须由权利人确认或换掉** |
+| 素材来源可追溯 | `assets/reference/metric-trends/{breast-records,lymphoma-metrics}.png`（合计 1.1 MB）**不在 manifest 里**，且全仓代码零引用——只有 `docs/24-METRIC-TREND-TAB-DESIGN.md` 引用，而 docs 不随包分发 | ⚠️ **随包但无人用**，见下 |
+
+两条待办（都要用户裁定，本轮未擅自改包）：
+
+1. **Logo 授权**：`xyb-logo.png` 是社区品牌参考副本，`license` 为空。公开投稿前必须取得授权或替换为可分发素材。这不是技术问题，我不能自己判定。
+2. **1.1 MB 无人引用的他癌种参考图**：`assets/reference/metric-trends/` 两张 PNG 只被不随包分发的 docs 引用。若确认不投稿也不影响使用，可在下次版本把 `package.json` 的 `files` 从 `"assets"` 改成显式子路径（`assets/brand`、`assets/icons`、`assets/reference/ctcae`、`assets/tokens.css`、`assets/tokens.json`、`assets/manifest.json`、`assets/README.md`）——**本轮没做**，因为改 `files` 会改变已发布 0.1.0 的包内容，而 0.1.0 已有 tag 和 Release；同名同版本换内容是「`Already up to date` 不等于内容最新」那条教训的反面。要做就发 0.1.1。
+
+官方指南复核日期/来源：本地离线副本 `reference/official/market-acceptance-captured-2026-10-16.md`（投稿前仍需按指南要求核官网当前版本）。最终安装来源：本地 tgz（市场目录无条目）。用户确认的项目与执行者：**未投稿，不适用**。PR URL/检查结果：**不适用**。市场目录可见与可安装证据：**不适用**。**不把 Git push 当市场发布。**
