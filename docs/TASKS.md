@@ -15,7 +15,9 @@
 | M4 | 临床库（本癌种 2026 试验数据） | **不适用** | 场景 L10 裁决「不上临床试验入口」；`web_search` 把 head-and-neck 解析成运动品牌 HEAD，无可信通道 |
 | M5 | 开发版（生产业务实现） | **代码完成，待真机验收** | `lib/client.js` customFrame 外壳、`dsh/store.js`（46 表迁移+种子）、`dsh/server.js`（7 组路由）、`public/live.js` 读写闭环；`verify-live.py` 8/8；`npm run check` 全绿 |
 | M6 | 装机（实际包/Profile/版本核验） | **已装待验收** | `release/…0.1.0.tgz`（SHA-256 `b610a578…`）；已入 Desktop profile 的 `dsh.profile.bundles`；`check-install.mjs` ✓；装机副本与 tgz `diff -r` 0 差异；`probe:restart` PASS（46 表/种子/写入/重开仍在）；`probe:routes` PASS（7 组路由，含 export 两格式、UI 302、422+field 映射）；**`verify-tabs-on-artifact.py` PASS**——对装机副本本体用真 Chrome 逐个点开 10 一级 / 34 二级，0 异常/0 console error/0 失败请求/无空态/390 宽不溢出 |
-| M7 | 发布（tag/包 hash/市场） | **未开始** | 未授权 |
+| M7 | 发布（tag/包 hash/市场） | **已发布，市场投稿未做** | 远端仓 `xyb-openharness-dsh-plugins/head-neck-workbench`（private，默认 `main`）；tag `v0.1.0`；Release `v0.1.0` 附 tgz（3,534,460 字节）；`CHANGELOG.md` 按实际内容重写；**市场投稿未做**（对外投稿，等用户点头） |
+| M8 | 状态回填（组织 BACKLOG） | **完成并已推送** | `~/Downloads/.github` `097dbc0`；第 73 行主表 + 第 199 行 W5 表；顺带把「当前已启动」改为实查口径（远端 24 + 仅本地 3） |
+| M9 | 教训回流（脚手架可执行闸门） | **完成（脚手架 1.5.2）** | `serve-artifact.mjs` + `verify-tabs-on-artifact.py` + `pack-contents.test.mjs` 随 init 下发；manifest `probe:artifact`/`probe:tabs`；`check-starter` 必备清单加三件；LESSONS 11/12/13；starter `51348a8`，`npm test` 37/37，新项目 154 文件、`npm test` 4/4 |
 
 ## 闸口
 
