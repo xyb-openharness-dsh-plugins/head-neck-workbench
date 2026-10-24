@@ -16,7 +16,7 @@ Agent 是否运行在目标 Desktop 内：**是**——所以本 Agent 不自行
 | ACC-05 | UI | 无会话可用，所选布局和原生会话 | **未验证**：同上；外壳代码已就位（`customFrame: true`、`businessWidth: 0.72`） | `lib/client.js` | 未验证（需重启） |
 | ACC-06 | UI | 一级/二级页与配置弹窗逐项对照 | **业务页已在装机产物上通过**：原型 10 一级 / 34 二级全渲、无 undefined/NaN、鼻咽档案 33 二级且「手术」隐藏、「放疗」置首；**装机副本本体**用真 Chrome 逐个点开 10 一级 / 34 二级，0 未捕获异常 / 0 console error / 0 失败请求 / 无「本页签尚未实现」空态（`verify-tabs-on-artifact.py`）。仍未验证的是**宿主外壳里**的界面（需重启） | `verify_prototype.py` 24/24；`verify-tabs-on-artifact.py` | 通过（产物层）；宿主界面待重启 |
 | ACC-07 | UI | 窄容器/大字/翻面/趋势/键盘 | 原型层通过：390 宽无横向溢出、指标卡固定高 276、翻面 `aria-pressed` 单卡布尔、一图秀 C1–C12 实测；**产物层** 390 宽 `scrollWidth=390=innerWidth` 不溢出；宿主外壳内界面**未验证** | `verify-live.py` 判据 5；`measure-one-chart.py`；`verify-tabs-on-artifact.py` | 部分通过（界面待重启） |
-| ACC-08 | 跨页 | 单一事实新增后各页一致 | 通过：新增关切后首页未问数、关切清单、复诊摘要同源（`verify-live.py` 判据 3 + 判据 4 写回后回拉） | `scripts/verify-live.py` | 通过 |
+| ACC-08 | 跨页 | 单一事实新增后各页一致 | 通过：新增关切后首页未问数、关切清单、复诊摘要同源（`verify-live.py` 判据 3 + 判据 4 写回后回拉）；**同一套判据在装机产物上也 8/8 通过**（`python3 scripts/verify-live.py --port 5190`，档案名/关切文本均来自库、点一次 `asked` 0→1 落盘、390 宽 0 溢出、0 异常） | `scripts/verify-live.py` | 通过（dev-server 与产物两处） |
 | ACC-09 | 文件 | 预览/解析/确认/导出真实格式/回顾 | 导出**通过**（`/export?format=md` 生成中文 Markdown）；报告解析**未接通**（`docs/18-MINERU-PARSING.md` 本轮只留接口，DESIGN-07 严格停 phase1 的延续） | `dsh/server.js` `exportMarkdown()` | 部分通过（解析未做） |
 | ACC-10 | 外部 | API/MCP/cron 实际链路与失败恢复 | **不适用**：本项目无外部 API/MCP/cron 依赖（M4 试验库不适用，见 `docs/DEV-PLAN.md` §三） | — | 不适用 |
 
