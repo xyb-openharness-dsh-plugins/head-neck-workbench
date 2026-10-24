@@ -6,7 +6,7 @@
 
 家族一致性：`npm run audit` → **31/33 通过 · 0 失败 · 2 待人工**（`schema/freeze-contract.md` 未单独建文件；无 `prototypes/v0.2`，v0.1 即 G2 确认版）。**0 失败，可发布**；2 条 warn 结论见 `docs/ACCEPTANCE.md` ACC-00。
 源码检查：`npm run check` 退出码 0（`staticPass: true`、文案红线 64 文件 0 违规、`build-public --check` 同步、schema 24/24、原型 24/24、单测 10/10）
-包检查/大小/hash：`release/xyb-community-head-neck-workbench-0.1.0.tgz` ／ **3.53 MB**（其中 `assets/reference/ctcae/CTCAE_v5.0_Quick_Reference_5x7.pdf` 2.99 MB，按 AGENTS.md 标准原文必须随包分发）／ SHA-256 **`5207dd1eaeb0764f6215eebe81a1fdd57674cb45c03c5f03ec48be9015b1f001`** ／ 27 文件
+包检查/大小/hash：`release/xyb-community-head-neck-workbench-0.1.0.tgz` ／ **3.53 MB（3,534,204 字节）**（其中 `assets/reference/ctcae/CTCAE_v5.0_Quick_Reference_5x7.pdf` 2.99 MB，按 AGENTS.md 标准原文必须随包分发）／ SHA-256 **`cbe0079808098ffb202c9d846c677c24b64e9a611c7fd21ac21ec7fcafd0f0ed`** ／ 27 文件
 实机证据：装机副本探针 `/health` 200、`/ui/` 200（68982 字节）、`/ui/live.js` 200、`/bootstrap` 200，46 表建成；`scripts/verify-live.py` 真 Chrome **8/8**。**Desktop 界面加载未验证**（需用户重启）。
 README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.md` 已随包；`UNLICENSED`；素材为 CTCAE v5.0 官方 Quick Reference（随包分发一份，符合 `docs/23-METRIC-GRADING-AND-ALERTS.md`）
 演示数据清单已清理或明确示例环境：演示数据**明确标注**——`live.js` 在界面顶部插横幅「演示数据 · 内容为虚构示例，不是真实病例。v0.1.0-dev」；导出 Markdown 也标注演示数据
@@ -20,7 +20,7 @@ README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.
 | --- | --- | --- | --- |
 | 本地安装 | Desktop/profile | `pnpm add -w` 装入 `profiles/web`，并写入 `dsh.profile.bundles`；`check-install.mjs` ✓；探针 4 路由 200 | **已执行，界面待重启验收** |
 | Git push | 远端/分支/commit | **无 remote**（`git remote -v` 为空），远端仓未建 | 未执行（未授权） |
-| Release/npm | tag/产物/hash | tgz 已产出，SHA-256 `5207dd1e…`；未打 tag、未建 Release | 未执行（未授权） |
+| Release/npm | tag/产物/hash | tgz 已产出，SHA-256 `cbe00798…`；未打 tag、未建 Release | 未执行（未授权） |
 | 市场 PR | 官方目录仓库 | — | 未执行（未授权） |
 | 上架 | 公开 catalog | — | 不适用 |
 

@@ -236,3 +236,25 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 - **落地**：新增 `test/pack-contents.test.mjs`（4 条，用 `npm pack --dry-run --json` 拿真实清单）——断言 tgz 必须有 `public/index.html`、`public/live.js`、`schema/migrations/*.sql`（且含 `0001_`）、`cordis.patch.yml` 且 patch 声明 `config.root`。这是本项目第一条**以打包产物为对象**的测试，不落盘、不留临时 tgz。
 - **顺带发现的第二个真 bug**：`cordis.patch.yml` 没写 `config.root`，而 `dsh/index.js` 的 `Config` 声明了 `root`。后果是**装机能开、每次重启回内存库**——用户记了一天的东西，重启就没了，而且没有任何提示。这个被 `check-workbench-package` 规则⑤ 当场点名（`staticPass: false`），属于有闸门且真响了的正例。
 - **可复用的做法**：凡是"运行期按路径读文件"的模块（迁移、模板、静态资源、标准原文 PDF），都该在**打包后**验一次，而不是在源码树里验。源码树里那些目录永远在，所以本地跑得通**完全不能说明**装进去跑得通。
+
+### 11. 约束失败不能漏成 500（患者看到的是 SQLite 原文）
+
+**现象**：`POST /entities/concerns` 传一个不合法的枚举值，接口返回 **500**，响应体 `{"error":"ERR_SQLITE_ERROR","message":"CHECK constraint failed: kind IN ('担心','要问的问题','生活困难','其他')"}`。
+
+**为什么算缺陷，不是小事**：CHECK / NOT NULL / UNIQUE 失败是**用户给了不合法的值**，属于输入错误。当 500 抛出去有两个后果——前端只能显示一句 `ERR_SQLITE_ERROR`，患者看不懂；而且响应体和日志里把表名、列名、约束表达式都写出来了，等于把库结构漏给前端。
+
+**修法**（`dsh/server.js` 的 `mapSqliteError`）：在统一 catch 里先认 SQLite 约束错误，翻成 `422 + {error:'invalid', message:'这个值不合法：<列>', field:'<列>'}`。列名从错误串反解：`NOT NULL/UNIQUE constraint failed: table.column` 取列名；`CHECK constraint failed: <标识符> IN (...)` 取首个标识符；**反解不出来就只给 422，不硬猜字段**。
+
+**教训**：错误处理里"500 = 我们错了、4xx = 你给的值有问题"这条线必须画清楚。凡是把数据库错误原样透传的地方，都在把内部结构当错误信息发给用户。
+
+### 12. 同一个 `file:` tgz 改了内容，pnpm 说「Already up to date」
+
+**现象**：重新 `npm pack` 覆盖了同名的 `release/xxx-0.1.0.tgz`（内容变了、SHA-256 变了），再 `pnpm add -w file:...tgz`，输出 **`Already up to date`**，装机副本 `mtime` 不变、新代码没进去。
+
+**根因**：版本号没变（还是 0.1.0），pnpm 按「版本 + 依赖范围」判定无需重新解析，锁文件里的 integrity 仍指向旧包；`pnpm update <pkg>` 同样无效。
+
+**有效修法**：`pnpm remove -w <pkg>` → `pnpm add -w file:...tgz`，强制重新解析。执行前先 `cp package.json /tmp/backup`，事后核对 `dsh.profile.bundles` 没被改动（本项目 34 项，改前改后一致）。
+
+**另一个坑**：PATH 上的 `pnpm` 可能是错的版本。本机 `pnpm --version` = **9.12.2**，而 profile 的 `packageManager` 声明 **pnpm@10.34.5**；用 9.x 会报 `pnpm now wants to use the store at .../store/v3`（store 主版本不匹配）。正确做法是用 `~/.nvm/versions/node/v22.19.0/bin/pnpm`（10.34.5），而不是 `which pnpm` 拿到的那个。
+
+**教训**：`Already up to date` 不等于"已经是最新内容"。用**内容**验证（`diff -r` 解包目录 vs 装机目录），不要用命令输出验证。

@@ -225,6 +225,42 @@ function exportMarkdown(store, subjectId) {
 
 /* ---------------- handler ---------------- */
 
+/**
+ * 把 SQLite 的约束失败翻成「用户输入错误」。
+ *
+ * 为什么必须翻：CHECK / NOT NULL / UNIQUE 失败是**用户给了不合法的值**，
+ * 不是服务内部出错。原样当 500 抛出去有两个坏处——前端只能显示一句
+ * 「ERR_SQLITE_ERROR」，患者看不懂；而且 500 会把 SQLite 的表名与约束表达式
+ * 写进日志和响应体，等于把库结构漏给前端。
+ *
+ * 字段名从错误串里反解：
+ *   CHECK constraint failed: kind IN (...)        → kind
+ *   CHECK constraint failed: <table>.<column> ... → column
+ *   NOT NULL constraint failed: concerns.text     → text
+ *   UNIQUE constraint failed: subjects.id         → id
+ * 反解不出来就只给 422，不硬猜字段。
+ */
+function mapSqliteError(error) {
+  const code = error && error.code
+  const msg = String((error && error.message) || '')
+  if (code !== 'ERR_SQLITE_ERROR' && !/^\w+ constraint failed/.test(msg)) return null
+
+  const detail = msg.split(':').slice(1).join(':').trim()
+  // 表名.列名 形式（NOT NULL / UNIQUE / FOREIGN KEY）
+  const qualified = detail.match(/^[\w]+\.[\w]+/)
+  if (qualified) {
+    const column = qualified[0].split('.')[1]
+    return { status: 422, body: { error: 'invalid', message: `这个值不合法：${column}`, field: column } }
+  }
+  // CHECK 表达式形式：取首个标识符当列名
+  const ident = detail.match(/^([A-Za-z_][\w]*)/)
+  if (ident) {
+    const column = ident[1]
+    return { status: 422, body: { error: 'invalid', message: `这个值不合法：${column}`, field: column } }
+  }
+  return { status: 422, body: { error: 'invalid', message: '这个值不合法' } }
+}
+
 export function createHandler(store, { version = '0.0.0', uiPrefix = `${API_PREFIX}/ui` } = {}) {
   return async function handler(req, res) {
     const path = pathOf(req.url)
@@ -319,6 +355,9 @@ export function createHandler(store, { version = '0.0.0', uiPrefix = `${API_PREF
 
       return sendJson(res, 404, { error: 'not_found', message: `没有这个接口：${path}` })
     } catch (error) {
+      const mapped = mapSqliteError(error)
+      if (mapped) return sendJson(res, mapped.status, mapped.body)
+
       const status = error.status || 500
       if (status >= 500) {
         // 500 不把内部堆栈发给前端，但要留在服务端日志里
