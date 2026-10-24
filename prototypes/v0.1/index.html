@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小言宝 · VoicePal — 头颈癌工作台（原型 v0.1）</title>
+<style>
+:root{
+  --ink:#16211d; --ink-2:#3c4a44; --muted:#6f7d76;
+  --paper:#f6f4ee; --paper-2:#fffdf8; --line:#ddd8cc; --line-2:#ebe6da;
+  --teal:#0f6b5c; --teal-soft:#e3efea; --teal-deep:#08463c;
+  --terra:#b4653f; --terra-soft:#f6e7de;
+  --crit:#9c2f1c; --crit-soft:#f7e2dd;
+  --warn:#8a6a1f; --warn-soft:#f7eed6;
+  --radius:10px; --radius-lg:16px;
+  --shadow:0 1px 2px rgba(22,33,29,.05),0 8px 24px -12px rgba(22,33,29,.18);
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans); color:var(--ink); background:var(--paper);
+  font-size:14.5px; line-height:1.72; -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit}
+
+/* ---------- 顶栏：三段式（左 品牌+版本 / 中 一句状态 / 右 操作） ---------- */
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  padding:10px 20px;background:var(--paper-2);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:40;
+}
+.brand{display:flex;align-items:baseline;gap:8px;flex:0 0 auto}
+.brand b{font-family:var(--serif);font-size:19px;letter-spacing:.02em;font-weight:600}
+.brand .en{font-size:11.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.vchip{
+  font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:99px;
+  background:var(--teal-soft);color:var(--teal-deep);border:1px solid #cfe2db;
+}
+.topbar .status{
+  flex:1 1 auto;min-width:0;text-align:center;font-size:12.5px;color:var(--ink-2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+@media (max-width:560px){
+  .topbar{gap:10px;padding:10px 12px}
+  .brand .en{display:none}
+  .topbar .actions{gap:5px}
+  .topbar .actions .mini{padding:2px 7px;font-size:11px}
+}
+.topbar .actions{display:flex;gap:8px;flex:0 0 auto;margin-left:auto}
+
+/* ---------- 布局 ---------- */
+.shell{display:grid;grid-template-columns:196px minmax(0,1fr) 0;min-height:calc(100vh - 53px);transition:grid-template-columns .22s ease}
+.shell.with-agent{grid-template-columns:196px minmax(0,1fr) 340px}
+
+/* ---------- 左侧一级导航 ---------- */
+.sidenav{border-right:1px solid var(--line);background:var(--paper-2);padding:14px 10px 40px}
+.profile-switch{margin:0 4px 14px;padding:9px 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+.profile-switch label{display:block;font-size:11px;color:var(--muted);letter-spacing:.04em;margin-bottom:4px}
+.profile-switch select{width:100%;border:0;background:transparent;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.sidenav .grp{font-size:10.5px;letter-spacing:.12em;color:var(--muted);margin:14px 10px 6px;text-transform:uppercase}
+.sidenav a{
+  display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;
+  color:var(--ink-2);text-decoration:none;font-size:13.5px;cursor:pointer;
+}
+.sidenav a:hover{background:var(--line-2)}
+.sidenav a[aria-current="page"]{background:var(--teal);color:#fff;font-weight:500}
+.sidenav a .dot{width:6px;height:6px;border-radius:99px;background:currentColor;opacity:.35;flex:0 0 auto}
+.sidenav a[aria-current="page"] .dot{opacity:1;background:#fff}
+.sidenav a .track{margin-left:auto;font-family:var(--mono);font-size:10px;opacity:.55}
+
+/* ---------- 主区 ---------- */
+.main{min-width:0;padding:22px 28px 80px}
+.crumb{font-size:12px;color:var(--muted);margin-bottom:6px}
+.crumb b{color:var(--ink);font-weight:600}
+h1{font-family:var(--serif);font-size:26px;line-height:1.3;margin:0 0 4px;font-weight:600;letter-spacing:.01em}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+
+/* 二级页签 */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px;padding-bottom:2px;border-bottom:1px solid var(--line)}
+.tabs button{
+  border:0;background:transparent;padding:8px 12px;border-radius:8px 8px 0 0;cursor:pointer;
+  font-size:13.5px;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;
+}
+.tabs button:hover{background:var(--line-2)}
+.tabs button[aria-selected="true"]{color:var(--teal-deep);border-bottom-color:var(--teal);font-weight:600;background:var(--teal-soft)}
+
+/* 卡片 */
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-lg);padding:18px 20px;margin:0 0 16px;box-shadow:var(--shadow)}
+.card > h3{font-family:var(--serif);font-size:16.5px;margin:0 0 10px;font-weight:600}
+.card > h3 + .hint{margin-top:-6px}
+.hint{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+
+/* 键值表 */
+dl.kv{display:grid;grid-template-columns:9.5em 1fr;gap:6px 14px;margin:0;font-size:13.5px}
+dl.kv dt{color:var(--muted);font-size:12.5px}
+dl.kv dd{margin:0;color:var(--ink)}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{text-align:left;font-weight:600;color:var(--ink-2);border-bottom:1px solid var(--line);padding:7px 8px;font-size:12.5px;white-space:nowrap}
+table.t td{border-bottom:1px solid var(--line-2);padding:7px 8px;vertical-align:top}
+table.t tr:last-child td{border-bottom:0}
+table.t td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* 标签 */
+.tag{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:5px;background:var(--line-2);color:var(--ink-2);white-space:nowrap}
+.tag.teal{background:var(--teal-soft);color:var(--teal-deep)}
+.tag.terra{background:var(--terra-soft);color:var(--terra)}
+.tag.crit{background:var(--crit-soft);color:var(--crit)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.src{font-size:11.5px;color:var(--muted)}
+
+/* 提示块 */
+.notice{border-left:3px solid var(--teal);background:var(--teal-soft);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;font-size:13px;margin:12px 0}
+.notice.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.notice.crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.notice b{font-weight:600}
+blockquote{margin:10px 0;padding:8px 14px;border-left:3px solid var(--line);background:#fbfaf5;font-size:13px;color:var(--ink-2)}
+blockquote cite{display:block;font-size:11.5px;color:var(--muted);font-style:normal;margin-top:4px}
+
+/* 折叠：原生 details */
+details.fold{border:1px solid var(--line);border-radius:var(--radius);background:#fff;margin:10px 0;overflow:hidden}
+details.fold > summary{cursor:pointer;padding:10px 14px;font-size:13.5px;font-weight:500;list-style:none;display:flex;align-items:center;gap:8px}
+details.fold > summary::-webkit-details-marker{display:none}
+details.fold > summary::before{content:"▸";color:var(--muted);transition:transform .15s;display:inline-block}
+details.fold[open] > summary::before{transform:rotate(90deg)}
+details.fold[open] > summary{border-bottom:1px solid var(--line-2)}
+details.fold .body{padding:12px 14px}
+
+/* 指标卡：固定高度 + 3D 翻转 */
+.metric-card{
+  height:276px;perspective:900px;cursor:pointer;outline:none;border-radius:var(--radius-lg);
+}
+.metric-card:focus-visible{box-shadow:0 0 0 3px var(--teal-soft),0 0 0 4px var(--teal)}
+.mc-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,.2,.2,1)}
+.metric-card[data-flipped="true"] .mc-inner{transform:rotateY(180deg)}
+.mc-face{
+  position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);
+  border-radius:var(--radius-lg);background:var(--paper-2);padding:14px 16px;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.mc-face.back{transform:rotateY(180deg);background:#fff}
+.mc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.mc-name{font-size:13px;color:var(--ink-2);font-weight:600}
+.mc-val{font-family:var(--mono);font-size:30px;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:6px;letter-spacing:-.02em}
+.mc-val .u{font-size:13px;color:var(--muted);margin-left:4px;letter-spacing:0}
+.mc-delta{font-size:12.5px;color:var(--ink-2);margin-top:2px;font-family:var(--mono)}
+.mc-meta{margin-top:auto;font-size:11.5px;color:var(--muted);line-height:1.5}
+.mc-back-h{font-size:12px;color:var(--muted);margin:0 0 6px}
+.mc-back-body{font-size:12px;color:var(--ink-2);overflow:auto}
+.mc-back-body table{width:100%;font-size:11.5px;border-collapse:collapse}
+.mc-back-body td{padding:2px 4px;border-bottom:1px dotted var(--line)}
+.mc-flip-hint{position:absolute;right:12px;bottom:10px;font-size:10.5px;color:var(--muted);opacity:.75}
+
+/* 一图秀 */
+.chart-wrap{overflow-x:auto;overflow-y:hidden;border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:6px}
+.chart-wrap svg{display:block;min-width:560px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 0;font-size:12px;color:var(--ink-2)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.empty{padding:28px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:var(--radius);background:#fdfcf7}
+
+/* 关切清单 */
+.concern{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;padding:9px 0;border-bottom:1px solid var(--line-2)}
+.concern:last-child{border-bottom:0}
+.concern .txt{font-size:13.5px}
+.concern .meta{font-size:11.5px;color:var(--muted);margin-top:3px}
+.concern .ops{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.mini{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 8px;font-size:11.5px;cursor:pointer}
+.mini:hover{background:var(--line-2)}
+.mini[aria-pressed="true"]{background:var(--teal);color:#fff;border-color:var(--teal)}
+.addrow{display:flex;gap:8px;margin-top:12px}
+.addrow input{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:13.5px;background:#fff}
+.addrow select,.addrow button{border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:#fff;font-size:13px;cursor:pointer}
+.addrow button{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+/* 右栏 Agent 面板 */
+.agent{border-left:1px solid var(--line);background:var(--paper-2);display:none;flex-direction:column;min-width:0}
+.shell.with-agent .agent{display:flex}
+.agent header{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.agent header b{font-size:13.5px}
+.agent .msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.agent .m{font-size:13px;padding:9px 12px;border-radius:10px;max-width:92%}
+.agent .m.ai{background:var(--teal-soft);color:var(--teal-deep);align-self:flex-start}
+.agent .m.me{background:#fff;border:1px solid var(--line);align-self:flex-end}
+.agent .composer{border-top:1px solid var(--line);padding:10px;display:flex;gap:6px}
+.agent .composer input{flex:1;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:13px}
+.agent .composer button{border:0;background:var(--teal);color:#fff;border-radius:8px;padding:0 12px;cursor:pointer}
+.agent .tools{padding:8px 10px;border-top:1px solid var(--line-2);display:flex;gap:6px;flex-wrap:wrap}
+
+/* 急救卡（打印） */
+.rescue{border:2px solid var(--crit);border-radius:var(--radius);padding:16px 18px;background:#fff}
+.rescue h4{margin:0 0 8px;font-family:var(--serif);font-size:16px;color:var(--crit)}
+.rescue .big{font-size:13.5px;line-height:1.8}
+
+/* 响应式 */
+@media (max-width:1180px){
+  .shell,.shell.with-agent{grid-template-columns:170px minmax(0,1fr)}
+  .shell.with-agent .agent{position:fixed;right:0;top:53px;bottom:0;width:min(340px,86vw);z-index:50;box-shadow:-12px 0 32px -18px rgba(0,0,0,.3)}
+}
+@media (max-width:820px){
+  .shell,.shell.with-agent{grid-template-columns:1fr}
+  .sidenav{position:fixed;left:0;top:53px;bottom:0;width:min(240px,80vw);z-index:60;transform:translateX(-102%);transition:transform .2s;overflow:auto}
+  .sidenav.open{transform:none;box-shadow:12px 0 32px -18px rgba(0,0,0,.3)}
+  .main{padding:16px 16px 70px}
+  .topbar .status{display:none}
+  h1{font-size:22px}
+}
+@media print{
+  .topbar,.sidenav,.tabs,.agent,.no-print{display:none!important}
+  .shell,.shell.with-agent{grid-template-columns:1fr}
+  .main{padding:0}
+  .card{box-shadow:none;border:0;padding:0;margin:0 0 10px}
+  body{background:#fff;font-size:12pt}
+  .rescue{border-width:3px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <b>小言宝</b><span class="en">VoicePal</span>
+    <span class="vchip">v0.1.0 · 原型</span>
+  </div>
+  <div class="status" id="topStatus">演示数据 · 未接入真实病历</div>
+  <div class="actions">
+    <button class="mini" id="btnMenu" style="display:none">目录</button>
+    <button class="mini" id="btnAgent" aria-pressed="false">AI 助手</button>
+    <button class="mini" id="btnPrint">打印本页</button>
+  </div>
+</div>
+
+<div class="shell" id="shell">
+  <nav class="sidenav" id="sidenav">
+    <div class="profile-switch">
+      <label for="prof">演示档案</label>
+      <select id="prof">
+        <option value="A">A · 喉癌 · 全喉切除后</option>
+        <option value="B">B · 鼻咽癌 · 放疗为主</option>
+      </select>
+    </div>
+    <div id="navList"></div>
+  </nav>
+
+  <main class="main" id="main">
+    <div class="crumb" id="crumb"></div>
+    <h1 id="pageTitle"></h1>
+    <p class="sub" id="pageSub"></p>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div id="wbPage"></div>
+  </main>
+
+  <aside class="agent" id="agent">
+    <header>
+      <b>AI 助手</b>
+      <span class="tag teal">演示</span>
+      <button class="mini" id="btnAgentClose" style="margin-left:auto">收起</button>
+    </header>
+    <div class="msgs" id="agentMsgs">
+      <div class="m ai">我看到了你正在看的页面。可以让我帮你把这段整理成一句话、或生成一份带去复诊的摘要。</div>
+      <div class="m me">帮我把「堵管了怎么办」这段说给我老伴听，她不太懂。</div>
+      <div class="m ai">好。我会把页面上的三步改成口语，并提醒她：<b>这不是伤口，是唯一的呼吸通道</b>。点下面的按钮可以把这段复制走。</div>
+    </div>
+    <div class="tools">
+      <button class="mini" id="btnCopyPrompt">复制场景提示词</button>
+      <button class="mini" id="btnCopySummary">复制本页要点</button>
+    </div>
+    <div class="composer">
+      <input id="agentInput" placeholder="问点什么…（演示环境不会真的发送）">
+      <button id="agentSend">发送</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   数据：两个演示档案（A 喉癌全喉切除 / B 鼻咽癌放疗为主）
+   —— 所有数值均为演示值，不是真实病历
+   ============================================================ */
+const DEMO = {
+  A: {
+    id:'A', name:'演示档案 A', site:'喉', siteDetail:'声门型',
+    sex:'男', birthYear:1957,
+    stage:{ system:'AJCC第8版', t:'T4a', n:'N2b', m:'M0', overall:'IV A 期', by:'演示医院 头颈外科', on:'2026-03-12' },
+    path:{
+      reportedOn:'2026-03-18', specimen:'根治标本（全喉）', histology:'鳞状细胞癌', grade:'中分化',
+      margin:'阴性', lv:'有', pn:'无', variantRaw:null, variantIsMain:null,
+      nodesPositive:3, nodesExamined:42,
+      raw:'（演示）喉声门区鳞状细胞癌，中分化，浸润至甲状软骨外膜。切缘阴性。脉管侵犯：有。神经侵犯：无。淋巴结 3/42 阳性（II、III 区）。'
+    },
+    biomarkers:[
+      { marker:'PD-L1 CPS', value:80, method:'22C3', specimen:'手术标本', on:'2026-03-20', note:'CPS 分子含淋巴细胞与巨噬细胞，可 >100' },
+      { marker:'p16', result:'阴性', method:'免疫组化', specimen:'手术标本', on:'2026-03-20' }
+    ],
+    lines:[
+      { no:1, intent:'根治', name:'手术（全喉切除 + 双侧颈清扫）', start:'2026-03-18', end:'2026-04-02', current:false },
+      { no:2, intent:'术后辅助', name:'放疗 66 Gy / 33 次（IMRT）', start:'2026-05-06', end:'2026-06-22', current:false },
+      { no:3, intent:'未注明', name:'随访观察', start:'2026-06-23', end:null, current:true }
+    ],
+    surgery:{
+      procedure:'全喉切除', on:'2026-03-18', approach:'开放', laterality:'—',
+      larynxPreserved:false, voiceLost:true, permanentStoma:true,
+      neck:{ side:'双侧', levels:'II–IV', spinalAccessory:'右侧保留 / 左侧未保留' },
+      recon:'—'
+    },
+    rt:{ technique:'IMRT', start:'2026-05-06', end:'2026-06-22', dose:66, fractions:33, sites:['喉床 + 双侧颈淋巴引流区'] },
+    airway:{ kind:'永久气管造口', establishedOn:'2026-03-18', tubeType:'一次性气管套管 8.0' },
+    stoma:{ humidity:'人工鼻（HME）白天佩戴', cleaning:'每日 1–2 次，温水清洗造口周围', shower:'淋浴时用造口遮挡罩' },
+    supplies:[
+      { item:'一次性气管套管', spec:'8.0', qty:6, reorderAt:2 },
+      { item:'人工鼻（HME）', spec:'标准型', qty:20, reorderAt:5 },
+      { item:'造口遮挡罩', spec:'通用', qty:1, reorderAt:1 }
+    ],
+    stomaLogs:[
+      { on:'2026-09-14', event:'堵塞', severity:'中等', note:'早晨有干痂，咳出后缓解' },
+      { on:'2026-09-02', event:'更换', severity:'轻微', note:'按计划更换套管' }
+    ],
+    emergencies:[
+      { at:'2026-09-14 06:20', kind:'堵管', outcome:'自行咳出', wentTo:'未就医' }
+    ],
+    voice:{
+      methods:[
+        { method:'TEP发音管', start:'2026-06-10', end:null, current:true },
+        { method:'书写', start:'2026-03-19', end:null, current:false }
+      ],
+      prostheses:[
+        { placed:'2026-06-10', spec:'Provox 8mm', removed:'2026-09-20', reason:'漏气' }
+      ],
+      aids:['写字板（床头）','手机打字','急救卡（打印版）']
+    },
+    feeding:{ route:'口进', start:'2026-07-02', current:true, history:[{route:'胃管',start:'2026-03-18',end:'2026-07-01'}] },
+    aspirations:[
+      { on:'2026-08-11', food:'水', coughed:1, silent:0, fever:0, note:'喝水时呛了一次，咳出来了' },
+      { on:'2026-09-05', food:'稀粥', coughed:0, silent:1, fever:0, note:'没咳，但饭后声音变湿' }
+    ],
+    intake:[
+      { on:'2026-09-20', form:'软食', appetite:'一般', note:'干饭咽不下' },
+      { on:'2026-09-10', form:'半流质', appetite:'差', note:'放疗后口干明显' }
+    ],
+    functions:[
+      { domain:'发声', activity:'打电话（说清姓名与地址）', ability:'部分能做到' },
+      { domain:'吞咽', activity:'吃干饭', ability:'做不到' },
+      { domain:'肩臂', activity:'患侧手梳头', ability:'部分能做到' },
+      { domain:'张口', activity:'张口放进三指', ability:'能做到' }
+    ],
+    lateTox:[
+      { domain:'口干', on:'2026-09-10', severity:'「晚上要起来喝水两次」', yearsAfter:0.2 },
+      { domain:'牙关紧闭', on:'2026-09-10', severity:'「张口约 35 mm」', yearsAfter:0.2 }
+    ],
+    dental:[{ on:'2026-08-20', event:'疼痛', rtDisclosed:1, note:'牙医知道放疗史，建议先观察' }],
+    trismus:[{ on:'2026-09-10', mm:35 }],
+    metrics:[
+      { code:'weight', label:'体重', unit:'kg', track:'C', grade:'无', chartable:true },
+      { code:'alb', label:'白蛋白', unit:'g/L', track:'A', grade:'CTCAE v5.0', chartable:true },
+      { code:'hb', label:'血红蛋白', unit:'g/L', track:'A', grade:'CTCAE v5.0', chartable:true },
+      { code:'mucositis', label:'口腔黏膜炎', unit:'WHO 分级', track:'D', grade:'WHO', chartable:false }
+    ],
+    obs:[
+      { code:'weight', on:'2026-04-02', v:71.0, lab:'—', method:'家用体重秤' },
+      { code:'weight', on:'2026-05-20', v:69.2, lab:'—', method:'家用体重秤' },
+      { code:'weight', on:'2026-06-22', v:66.5, lab:'—', method:'家用体重秤' },
+      { code:'weight', on:'2026-07-25', v:64.8, lab:'—', method:'家用体重秤' },
+      { code:'weight', on:'2026-08-22', v:63.1, lab:'—', method:'家用体重秤' },
+      { code:'weight', on:'2026-09-20', v:62.4, lab:'—', method:'家用体重秤' },
+      { code:'alb', on:'2026-06-22', v:38, lab:'演示医院检验科', method:'溴甲酚绿法' },
+      { code:'alb', on:'2026-07-25', v:36, lab:'演示医院检验科', method:'溴甲酚绿法' },
+      { code:'alb', on:'2026-08-22', v:34, lab:'演示医院检验科', method:'溴甲酚绿法' },
+      { code:'alb', on:'2026-09-20', v:33, lab:'演示社区医院', method:'免疫比浊法' },
+      { code:'hb', on:'2026-06-22', v:118, lab:'演示医院检验科', method:'血细胞分析' },
+      { code:'hb', on:'2026-07-25', v:109, lab:'演示医院检验科', method:'血细胞分析' },
+      { code:'hb', on:'2026-08-22', v:104, lab:'演示医院检验科', method:'血细胞分析' },
+      { code:'hb', on:'2026-09-20', v:101, lab:'演示社区医院', method:'血细胞分析' }
+    ],
+    mucositis:[
+      { on:'2026-05-20', grade:1, form:'普通', note:'红斑，轻微疼痛' },
+      { on:'2026-06-05', grade:2, form:'半流质', note:'溃疡，只能吃半流质' },
+      { on:'2026-06-18', grade:3, form:'流质', note:'只能进流质，需止痛' },
+      { on:'2026-07-10', grade:1, form:'普通', note:'明显好转' }
+    ],
+    concerns:[
+      { id:'c1', text:'发音管什么时候该换？现在说话有点漏气', kind:'要问的问题', asked:1, answer:'医生说漏气就可以换，不用等到固定时间', addressed:1, vis:'private' },
+      { id:'c2', text:'放疗后能不能拔牙？牙医说不敢拔', kind:'担心', asked:1, answer:'（还没答）', addressed:0, vis:'private' },
+      { id:'c3', text:'晚上总醒，怕复发', kind:'担心', asked:0, answer:null, addressed:0, vis:'private' },
+      { id:'c4', text:'想问问能不能吃干饭了', kind:'要问的问题', asked:0, answer:null, addressed:0, vis:'shared' }
+    ],
+    followups:[
+      { item:'颈部增强 CT', interval:'按本院方案（来源原文：术后 3 个月首次，之后按医嘱）', next:'2026-11-10', src:'院内方案', ver:'2026-01 版' },
+      { item:'喉镜/造口检查', interval:'按本院方案', next:'2026-11-10', src:'院内方案', ver:'2026-01 版' },
+      { item:'甲状腺功能', interval:'放疗后每年（来源原文）', next:'2027-06-22', src:'院内方案', ver:'2026-01 版' }
+    ],
+    followupRecords:[
+      { on:'2026-09-10', dept:'头颈外科', summary:'造口通畅，发音管在位，体重较上次下降 0.7 kg' }
+    ],
+    viewpoints:[
+      { id:'v1', kind:'感受', text:'晚上睡不着，老想最坏的情况，但不想让他们担心。', on:'2026-09-12', vis:'private' },
+      { id:'v2', kind:'病耻', text:'说三遍人家还听不清，我就不说了。', on:'2026-09-15', vis:'private' },
+      { id:'v3', kind:'外形', text:'出门戴围巾遮造口，夏天很难受。', on:'2026-08-30', vis:'private' }
+    ],
+    caregiver:[
+      { id:'g1', text:'老伴每天问我要不要喝水，我也不知道该让她做什么。', on:'2026-09-11', by:'本人' }
+    ],
+    docs:[
+      { title:'病理报告（2026-03-18）', kind:'病理报告', path:'raw/2026-03-18-path.pdf', state:'已解析' },
+      { title:'放疗小结（2026-06-22）', kind:'出院小结', path:'raw/2026-06-22-rt.pdf', state:'已解析' },
+      { title:'化验单（2026-09-20）', kind:'化验单', path:'raw/2026-09-20-lab.pdf', state:'未解析' }
+    ],
+    drafts:[
+      { field:'白蛋白', value:'33', unit:'g/L', state:'pending' },
+      { field:'血红蛋白', value:'101', unit:'g/L', state:'pending' },
+      { field:'尿比重', value:'SG 1.0??', unit:'', state:'pending', note:'原件看不清，按规则留空待补' }
+    ],
+    tasks:[
+      { title:'补货：人工鼻 HME', due:'2026-10-28', done:false },
+      { title:'复诊带打印摘要', due:'2026-11-10', done:false }
+    ]
+  },
+  B: {
+    id:'B', name:'演示档案 B', site:'鼻咽', siteDetail:'鼻咽顶后壁',
+    sex:'女', birthYear:1972,
+    stage:{ system:'AJCC第8版', t:'T3', n:'N2', m:'M0', overall:'III 期', by:'演示医院 放疗科', on:'2026-04-02' },
+    path:{ reportedOn:'2026-03-28', specimen:'鼻咽活检', histology:'非角化性未分化癌', grade:'—', margin:'未提及', lv:'未提及', pn:'未提及', variantRaw:null, variantIsMain:null, nodesPositive:null, nodesExamined:null, raw:'（演示）鼻咽黏膜活检，非角化性未分化癌。' },
+    biomarkers:[{ marker:'PD-L1 CPS', value:15, method:'22C3', specimen:'活检', on:'2026-04-01' }],
+    lines:[{ no:1, intent:'根治', name:'同步放化疗（IMRT + 顺铂）', start:'2026-04-20', end:'2026-06-30', current:true }],
+    surgery:null,
+    rt:{ technique:'IMRT', start:'2026-04-20', end:'2026-06-30', dose:70, fractions:33, sites:['鼻咽原发灶 + 双侧颈部'] },
+    airway:{ kind:'未记录', establishedOn:null, tubeType:null },
+    stoma:null, supplies:[], stomaLogs:[], emergencies:[],
+    voice:{ methods:[], prostheses:[], aids:[] },
+    feeding:{ route:'口进', start:'2026-04-20', current:true, history:[] },
+    aspirations:[],
+    intake:[{ on:'2026-07-15', form:'软食', appetite:'一般', note:'口干，需要就水' }],
+    functions:[{ domain:'张口', activity:'张口放进三指', ability:'部分能做到' }],
+    lateTox:[{ domain:'口干', on:'2026-09-01', severity:'「白天也要不停喝水」', yearsAfter:0.2 }],
+    dental:[], trismus:[{ on:'2026-09-01', mm:38 }],
+    metrics:[
+      { code:'weight', label:'体重', unit:'kg', track:'C', grade:'无', chartable:true },
+      { code:'hb', label:'血红蛋白', unit:'g/L', track:'A', grade:'CTCAE v5.0', chartable:true }
+    ],
+    obs:[
+      { code:'weight', on:'2026-04-20', v:58.0, lab:'—', method:'家用体重秤' },
+      { code:'weight', on:'2026-06-30', v:54.5, lab:'—', method:'家用体重秤' },
+      { code:'weight', on:'2026-09-01', v:55.8, lab:'—', method:'家用体重秤' },
+      { code:'hb', on:'2026-06-30', v:112, lab:'演示医院检验科', method:'血细胞分析' }
+    ],
+    mucositis:[{ on:'2026-06-10', grade:2, form:'半流质', note:'溃疡，只能吃半流质' }],
+    concerns:[{ id:'d1', text:'放疗后耳朵闷，要不要紧', kind:'要问的问题', asked:0, answer:null, addressed:0, vis:'private' }],
+    followups:[{ item:'鼻咽+颈部 MRI', interval:'按本院方案', next:'2026-10-30', src:'院内方案', ver:'2026-01 版' }],
+    followupRecords:[],
+    viewpoints:[{ id:'e1', kind:'感受', text:'放疗做完反而更累了。', on:'2026-09-01', vis:'private' }],
+    caregiver:[], docs:[], drafts:[], tasks:[]
+  }
+};
+
+/* ============================================================
+   补充样式（页面内语义元素）
+   ============================================================ */
+</script>
+<style>
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;margin:0;font-size:13.5px;align-items:baseline}
+dl.kv dt{color:var(--muted);font-size:12.5px;white-space:nowrap}
+dl.kv dd{margin:0;color:var(--ink)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px;margin:2px 0}
+table.tbl th{text-align:left;font-weight:600;color:var(--ink-2);font-size:12px;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;background:#fbfaf5}
+table.tbl td{padding:7px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}
+table.tbl tr:last-child td{border-bottom:0}
+details.fold{border:1px solid var(--line);border-radius:var(--radius);margin:10px 0;background:#fff}
+details.fold>summary{cursor:pointer;padding:10px 14px;font-size:13.5px;font-weight:600;list-style:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::before{content:'\25B8';margin-right:8px;color:var(--muted);display:inline-block;transition:transform .2s}
+details.fold[open]>summary::before{transform:rotate(90deg)}
+details.fold .fold-body{padding:0 14px 14px;font-size:13.5px;line-height:1.75}
+.qlist{list-style:none;margin:0;padding:0}
+.qlist li{padding:8px 0;border-bottom:1px solid var(--line-2);font-size:13.5px;line-height:1.7}
+.qlist li:last-child{border-bottom:0}
+.pill{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:20px;border:1px solid var(--line);color:var(--ink-2)}
+.big-num{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat4{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat4 .s{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.stat4 .s .k{font-size:11.5px;color:var(--muted)}
+.stat4 .s .v{font-family:var(--mono);font-size:20px;margin-top:2px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(18px);background:var(--ink);color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:99}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+pre.raw{white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;line-height:1.8;background:#fbfaf5;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:0}
+.tl{position:relative;padding-left:18px;margin:0}
+.tl::before{content:'';position:absolute;left:4px;top:6px;bottom:6px;width:1px;background:var(--line)}
+.tl .it{position:relative;padding:0 0 12px}
+.tl .it::before{content:'';position:absolute;left:-18px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--teal);border:2px solid var(--paper-2)}
+.tl .it .d{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+</style>
+<script>
+"use strict";
+/* ============================================================
+   外壳：导航 / 页签 / 渲染
+   ============================================================ */
+const NAV = [
+  { id:'board',   name:'看板',       tabs:['今天要知道的','四条轨道','最近变化'] },
+  { id:'disease', name:'我的病',     tabs:['原发部位与范围','分期与病理','病理报告原文','名词与不确定'] },
+  { id:'tx',      name:'治疗与手术', tabs:['治疗线','手术与切除范围','放疗','用药与不良反应'] },
+  { id:'airway',  name:'气道与造口', tabs:['我的气道','造口日常','耗材与库存','堵管与脱管'] },
+  { id:'voice',   name:'声音与沟通', tabs:['发声方式与发音管','能说到什么程度','说不出来的时候'] },
+  { id:'swallow', name:'吞咽与营养', tabs:['进食方式','呛咳与误吸','体重','吃什么与营养支持'] },
+  { id:'late',    name:'长期与复诊', tabs:['放疗后十年','复诊带什么','关切清单','随访记录'] },
+  { id:'metrics', name:'指标分析',   tabs:['指标卡片','一图秀','分级说明'] },
+  { id:'mind',    name:'心理与家人', tabs:['我现在的感受','家里人要做什么','说不出口的事'] },
+  { id:'data',    name:'资料与导出', tabs:['我的资料与草稿','导出给医生'] }
+];
+
+const STATE = { profile:'A', page:'board', tab:'今天要知道的', win:'all', flipped:{} };
+
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SUBJ = () => DEMO[STATE.profile];
+const src  = t => `<div class="src">来源：${esc(t)}</div>`;
+const notice = (t, cls) => `<div class="notice${cls?' '+cls:''}">${t}</div>`;
+const tag = (t, c) => `<span class="tag${c?' '+c:''}">${esc(t)}</span>`;
+const empty = t => `<div class="empty">${t}</div>`;
+const kv = rows => `<dl class="kv">${rows.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+const card = (title, body, hint) => `<div class="card"><h3>${title}</h3>${hint?`<p class="hint">${hint}</p>`:''}${body}</div>`;
+const fold = (sum, inner, open) => `<details class="fold"${open?' open':''}><summary>${sum}</summary><div class="fold-body">${inner}</div></details>`;
+const tbl = (head, rows, cls) => {
+  if(rows.length===1 && Array.isArray(rows[0]) && Array.isArray(rows[0][0])) rows = rows[0];
+  return `<table class="tbl${cls?' '+cls:''}"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+};
+const NONE = '<span class="src">未记录</span>';
+const YES = v => v==null ? NONE : esc(v);
+const md = d => d ? d.slice(0,10) : '—';
+
+function toast(msg){
+  let t = $('#toast');
+  if(!t){ t = document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('on'), 1900);
+}
+
+function visibleTabs(pageId){
+  const s = SUBJ();
+  let tabs = NAV.find(n=>n.id===pageId).tabs.slice();
+  if(s.site === '鼻咽'){
+    tabs = tabs.filter(t => t !== '手术与切除范围');
+    if(pageId === 'tx'){
+      tabs = ['放疗'].concat(tabs.filter(t => t !== '放疗'));
+    }
+  }
+  return tabs;
+}
+
+function renderNav(){
+  $('#navList').innerHTML = NAV.map(n=>{
+    const on = n.id === STATE.page;
+    const isNpcCollapsed = SUBJ().site==='鼻咽' && (n.id==='airway' || n.id==='voice');
+    return `<a href="#/${n.id}" data-page="${n.id}" aria-current="${on?'page':'false'}"><span class="dot"></span>${esc(n.name)}${isNpcCollapsed?'<span class="src" style="display:block;font-size:10.5px;margin-left:14px">本部位默认折叠</span>':''}</a>`;
+  }).join('');
+  $$('#navList a').forEach(a=>a.addEventListener('click',e=>{
+    e.preventDefault();
+    STATE.page = a.dataset.page;
+    STATE.tab = visibleTabs(STATE.page)[0];
+    render();
+  }));
+}
+
+function renderTabs(){
+  const tabs = visibleTabs(STATE.page);
+  if(!tabs.includes(STATE.tab)) STATE.tab = tabs[0];
+  $('#tabs').innerHTML = tabs.map(t=>`<button role="tab" data-tab="${esc(t)}" aria-selected="${t===STATE.tab}">${esc(t)}</button>`).join('');
+  $$('#tabs button').forEach(b=>b.addEventListener('click',()=>{ STATE.tab = b.dataset.tab; render(); }));
+}
+
+function render(){
+  const nav = NAV.find(n=>n.id===STATE.page);
+  const s = SUBJ();
+  renderNav(); renderTabs();
+  $('#crumb').textContent = `${nav.name} · ${STATE.tab}`;
+  $('#pageTitle').textContent = nav.name;
+  $('#pageSub').textContent = nav.sub || pageSubtitle(STATE.page, s);
+  const fn = (PAGES[STATE.page]||{})[STATE.tab];
+  $('#wbPage').innerHTML = fn ? fn() : empty('本页签尚未实现');
+  $('#topStatus').textContent = `${s.name} · ${s.site} · ${s.stage? s.stage.overall : '—'} · 演示数据`;
+  if(STATE.page==='metrics' && STATE.tab==='一图秀') mountChart();
+  if(STATE.page==='metrics' && STATE.tab==='指标卡片') mountCards();
+  if(STATE.page==='late' && STATE.tab==='关切清单') mountConcerns();
+  if(STATE.page==='mind' && STATE.tab==='我现在的感受') mountViewpoints();
+  bindPageActions();
+}
+
+function pageSubtitle(page, s){
+  const m = {
+    board:'四条轨道各自回答一个问题，永远不相加',
+    disease:'报告上写了什么、没写什么，分开记',
+    tx:'按治疗线分开存，换线不覆盖旧数据',
+    airway:'气管造口是终身的，急症要能离线查到',
+    voice:'失去声音之后，能恢复到什么程度是可记录的',
+    swallow:'呛咳与误吸是两件事，不咳的那种更危险',
+    late:'放疗结束不等于结束，十年轨道单独看',
+    metrics:'每个指标按自己全期 min/max 归一化，不可互相比较',
+    mind:'私密是默认值，不是开关的副作用',
+    data:'解析结果只是候选，逐项确认才进事实层'
+  };
+  return m[page] || '';
+}
+
+/* ============================================================
+   一图秀：每条线按该指标全期 min/max 归一化
+   ============================================================ */
+const SERIES_COLOR = ['#0f6b5c','#b4653a','#5b5b8a','#8a6d1f'];
+
+function chartData(codes){
+  const s = SUBJ();
+  let obs = s.obs.filter(o=>codes.includes(o.code));
+  if(STATE.win === '3m'){
+    const all = obs.map(o=>o.on).sort();
+    if(all.length){
+      const last = new Date(all[all.length-1]);
+      const cut = new Date(last); cut.setMonth(cut.getMonth()-3);
+      obs = obs.filter(o=> new Date(o.on) >= cut);
+    }
+  }
+  return obs;
+}
+
+function chartSVG(codes, W, H){
+  const s = SUBJ();
+  const obs = chartData(codes);
+  if(!obs.length) return `<div class="empty">所选时间窗内没有记录</div>`;
+  const P = {l:52,r:16,t:16,b:30};
+  const iw = W-P.l-P.r, ih = H-P.t-P.b;
+  const dates = Array.from(new Set(obs.map(o=>o.on))).sort();
+  // 治疗事件与数据同轴：时间范围取「数据 ∪ 事件」并集。
+  // 否则「手术早于第一条指标记录」时，最重要的那个事件会被指标窗口裁掉。
+  const EV = SUBJ().site === '鼻咽'
+    ? [{ d:'2026-04-20', label:'放疗开始' }, { d:'2026-06-30', label:'放疗结束' }]
+    : [{ d:'2026-03-18', label:'全喉切除' }, { d:'2026-05-06', label:'放疗开始' },
+       { d:'2026-06-10', label:'发音管' }, { d:'2026-06-22', label:'放疗结束' }];
+  const bounds = dates.concat(EV.map(e=>e.d)).sort();
+  const t0 = new Date(bounds[0]).getTime();
+  const t1 = new Date(bounds[bounds.length-1]).getTime();
+  const X = d => P.l + (t1===t0 ? iw/2 : (new Date(d).getTime()-t0)/(t1-t0)*iw);
+
+  let out = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="多指标时间轴">`;
+  // 事件泳道（分层：事件在上，数据区在下）
+  EV.forEach(e=>{
+    const x = X(e.d);
+    out += `<line x1="${x.toFixed(1)}" y1="6" x2="${x.toFixed(1)}" y2="${H-P.b}" stroke="#c9c5b8" stroke-width="1" stroke-dasharray="3 3"/>`;
+    out += `<rect x="${(x-3.5).toFixed(1)}" y="10" width="7" height="7" transform="rotate(45 ${x.toFixed(1)} 13.5)" fill="#8a6d1f"/>`;
+    out += `<text x="${(x+6).toFixed(1)}" y="17" font-size="9.5" fill="#8a6d1f">${esc(e.label)}</text>`;
+  });
+  // 网格线
+  for(let i=0;i<=3;i++){
+    const y = P.t + ih*i/3;
+    out += `<line x1="${P.l}" y1="${y.toFixed(1)}" x2="${W-P.r}" y2="${y.toFixed(1)}" stroke="#eee9dc" stroke-width="1"/>`;
+  }
+  // 每条线独立归一化
+  codes.forEach((code, ci)=>{
+    const mo = s.metrics.find(m=>m.code===code);
+    const pts = obs.filter(o=>o.code===code).sort((a,b)=> a.on<b.on?-1:1);
+    if(!pts.length) return;
+    const vals = pts.map(p=>p.v);
+    const mn = Math.min(...vals), mx = Math.max(...vals);
+    const span = (mx-mn) || 1;
+    const Y = v => P.t + ih - ((v-mn)/span)*ih*(span===0?0:1) - (span===0? ih/2 : 0);
+    const yOf = v => mn===mx ? P.t+ih/2 : P.t + ih - ((v-mn)/span)*ih;
+    const col = SERIES_COLOR[ci % SERIES_COLOR.length];
+    if(pts.length > 1){
+      const d = pts.map((p,i)=> `${i?'L':'M'}${X(p.on).toFixed(1)},${yOf(p.v).toFixed(1)}`).join(' ');
+      out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    }
+    pts.forEach(p=>{
+      out += `<circle cx="${X(p.on).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3.2" fill="#fff" stroke="${col}" stroke-width="2"><title>${esc(mo?mo.label:code)} ${p.v}${esc(mo?mo.unit:'')} · ${p.on}</title></circle>`;
+    });
+    // 末点标签
+    const last = pts[pts.length-1];
+    out += `<text x="${(X(last.on)+6).toFixed(1)}" y="${(yOf(last.v)-5).toFixed(1)}" font-size="10" fill="${col}" font-weight="600">${last.v}</text>`;
+  });
+  // 轴
+  out += `<line x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}" stroke="#c9c5b8"/>`;
+  out += `<text x="${P.l}" y="${H-10}" font-size="10" fill="#8a8778">${bounds[0]}</text>`;
+  out += `<text x="${W-P.r}" y="${H-10}" font-size="10" fill="#8a8778" text-anchor="end">${bounds[bounds.length-1]}</text>`;
+  out += `<text x="8" y="${P.t+4}" font-size="9.5" fill="#8a8778">各线独立</text>`;
+  out += `<text x="8" y="${P.t+16}" font-size="9.5" fill="#8a8778">归一化</text>`;
+  out += `</svg>`;
+  return out;
+}
+
+function mountChart(){
+  const wrap = $('#chartHost'); if(!wrap) return;
+  const codes = STATE.chartCodes || ['weight','alb','hb'];
+  wrap.innerHTML = chartSVG(codes, 720, 300);
+  const lg = $('#chartLegend');
+  if(lg){
+    lg.innerHTML = codes.map((c,i)=>{
+      const m = SUBJ().metrics.find(x=>x.code===c);
+      return m ? `<span><i style="background:${SERIES_COLOR[i%4]}"></i>${esc(m.label)}（${esc(m.unit)}）</span>` : '';
+    }).join('');
+  }
+}
+
+/* ============================================================
+   指标卡：固定高度 + preserve-3d，翻转是单卡布尔值
+   ============================================================ */
+function latestObs(code){
+  const o = SUBJ().obs.filter(x=>x.code===code).sort((a,b)=> a.on<b.on?1:-1);
+  return o;
+}
+
+function metricCard(m, i){
+  const o = latestObs(m.code);
+  const cur = o[0];
+  const prev = o[1];
+  let delta = '仅一次记录，无法比较';
+  if(cur && prev){
+    const d = +(cur.v - prev.v).toFixed(1);
+    delta = `${d>0?'+':''}${d} ${m.unit} · 上次 ${prev.v}（${prev.on}）`;
+  }
+  const back = o.length
+    ? `<table>${o.slice(0,4).map(x=>`<tr><td>${x.on}</td><td style="text-align:right">${x.v}</td></tr>`).join('')}</table>
+       <div class="src" style="margin-top:8px">按本指标全期 min/max 归一化<br>不可与其它指标比较</div>`
+    : `<div class="src">还没有记录</div>`;
+  const grad = m.grade && m.grade !== '无' ? tag(`对照 ${m.grade}`, 'teal') : tag('无分级标准');
+  return `<div class="metric-card" data-flipped="false" data-metric="${m.code}" role="group" tabindex="0" aria-pressed="false" aria-label="${esc(m.label)} 指标卡，可翻转查看趋势">
+    <div class="mc-inner">
+      <div class="mc-face front">
+        <div class="mc-head"><span class="mc-name">${esc(m.label)}</span>${grad}</div>
+        <div class="mc-val">${cur?cur.v:'—'}<span class="u">${esc(m.unit)}</span></div>
+        <div class="mc-delta">${esc(delta)}</div>
+        <div class="mc-meta">${cur?`${cur.on} · ${esc(cur.lab)}`:'—'}<br>共 ${o.length} 次记录</div>
+        <div class="mc-flip-hint">点卡片看趋势 ›</div>
+      </div>
+      <div class="mc-face back" aria-hidden="true" inert>
+        <div class="mc-back-h">${esc(m.label)} 最近记录</div>
+        <div class="mc-back-body">${back}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function mountCards(){
+  const host = $('#cardHost'); if(!host) return;
+  const ms = SUBJ().metrics;
+  host.innerHTML = ms.length ? ms.map(metricCard).join('') : empty('还没有定义指标');
+  $$('.metric-card').forEach(c=>{
+    const flip = ()=>{
+      const on = c.dataset.flipped !== 'true';
+      c.dataset.flipped = String(on);
+      c.setAttribute('aria-pressed', String(on));
+      const back = c.querySelector('.mc-face.back');
+      const front = c.querySelector('.mc-face.front');
+      back.setAttribute('aria-hidden', String(!on));
+      front.setAttribute('aria-hidden', String(on));
+      if(on) back.removeAttribute('inert'); else back.setAttribute('inert','');
+    };
+    c.addEventListener('click', flip);
+    c.addEventListener('keydown', e=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); flip(); }
+    });
+  });
+}
+
+/* ============================================================
+   页面内容：10 一级 / 34 二级
+   ============================================================ */
+const PAGES = {};
+
+/* ---------- 1 看板 ---------- */
+PAGES.board = {
+  '今天要知道的': () => {
+    const s = SUBJ();
+    const w = latestObs('weight')[0];
+    const hb = latestObs('hb')[0];
+    const low = s.supplies.filter(x=>x.qty <= x.reorderAt);
+    return `
+    ${notice(`这是<b>演示档案</b>，数值为构造值，不是真实病历。本工作台不做诊断、不判断该不该治疗。`,'warn')}
+    <div class="stat4">
+      <div class="s"><div class="k">最近体重</div><div class="v">${w?w.v+' kg':'—'}</div><div class="src">${w?w.on:''}</div></div>
+      <div class="s"><div class="k">最近血红蛋白</div><div class="v">${hb?hb.v+' g/L':'—'}</div><div class="src">${hb?hb.on:''}</div></div>
+      <div class="s"><div class="k">气道</div><div class="v" style="font-size:14px;font-family:inherit">${esc(s.airway.kind)}</div><div class="src">${s.airway.establishedOn?('建立于 '+s.airway.establishedOn):'—'}</div></div>
+      <div class="s"><div class="k">待办</div><div class="v">${s.tasks.filter(t=>!t.done).length}</div><div class="src">${s.tasks.filter(t=>!t.done).map(t=>esc(t.title)).join('、')||'—'}</div></div>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      ${card('今天可以做的三件事', `<ul class="qlist">
+        <li>看一眼造口周围皮肤有没有发红、破溃 —— 记在「造口日常」</li>
+        <li>如果今天吃得比昨天少，记一条进食形态（普通 / 软食 / 半流质 / 流质）</li>
+        <li>想到要问医生的事，先丢进「关切清单」，不要等复诊当天再想</li>
+      </ul>`, '只列可以做的事，不列该做的治疗')}
+      ${card('出现这些情况不要等', `<div class="rescue" style="padding:12px 14px">
+        <div class="big">造口突然吸不到气、出血不止、颈部迅速肿胀、<b>呛咳后发烧</b> —— 就近急诊，不要等到下次复诊。</div>
+      </div>
+      <p class="hint" style="margin-top:10px">这张卡片在「气道与造口 › 堵管与脱管」里可以打印，随身带。</p>`)}
+    </div>
+    ${card('下次复诊', s.followups.length ? tbl(['项目','计划','来源'],[s.followups.map(f=>[esc(f.item), esc(f.next||'—'), esc(f.src+' · '+f.ver)])]) : empty('还没有随访计划'), '来源与版本必须一起显示，指南换版后旧计划要能看出是旧的')}`;
+  },
+  '四条轨道': () => {
+    const s = SUBJ();
+    const tracks = [
+      { k:'A', name:'肿瘤与治疗', q:'我的病现在到哪一步、下一步是什么', last: s.lines.length? `最近一线：${s.lines[s.lines.length-1].name}` : '未记录' },
+      { k:'B', name:'气道与发声', q:'我还能不能呼吸顺畅、还能不能让人听懂', last: `${s.airway.kind}${s.voice.prostheses.length?('；发音管 '+s.voice.prostheses.length+' 次记录'):''}` },
+      { k:'C', name:'吞咽与营养', q:'我吃得下吗、有没有呛到肺里', last: s.intake.length? `最近进食形态：${s.intake[0].form}` : '未记录' },
+      { k:'D', name:'放疗后晚期毒性', q:'治疗结束几年后还在出现的问题', last: s.lateTox.length? `最近：${s.lateTox[0].domain}` : '未记录' }
+    ];
+    return `
+    ${notice(`<b>四条轨道永远不相加。</b>没有「综合评分」「总体状态」这种东西 —— 一条轨道变差不能用另一条变好来抵消。`,'crit')}
+    <div class="grid2">
+      ${tracks.map(t=>card(`${t.k} · ${t.name}`, `<p class="hint" style="margin:0 0 8px">这条轨回答：<b>${esc(t.q)}</b></p>${kv([['最近一条', esc(t.last)]])}`)).join('')}
+    </div>
+    ${card('为什么不给一个总分', `<p>如果把它们折成一个分数，你会在最需要分开看的时候被误导：比如体重在涨（C 看起来好），但其实是水肿（B/D 在变差）。</p>
+    <p class="hint">这条规则来自项目设计纪律，写进了数据库：四条轨道各自成表，没有任何字段把它们的值相加。</p>`)}`;
+  },
+  '最近变化': () => {
+    const s = SUBJ();
+    const items = [];
+    s.obs.slice().sort((a,b)=> a.on<b.on?1:-1).slice(0,5).forEach(o=>{
+      const m = s.metrics.find(x=>x.code===o.code);
+      items.push({ d:o.on, t:`${m?m.label:o.code} 记为 ${o.v}${m?m.unit:''}`, k:'指标' });
+    });
+    s.concerns.filter(c=>!c.addressed).slice(0,3).forEach(c=>items.push({ d:'—', t:c.text, k:'关切' }));
+    s.stomaLogs.forEach(l=>items.push({ d:l.on, t:`造口${l.event}（${l.severity}）${l.note?'：'+l.note:''}`, k:'气道' }));
+    items.sort((a,b)=> a.d<b.d?1:-1);
+    return card('最近变化', `<div class="tl">${items.map(i=>`<div class="it"><div class="d">${esc(i.d)} ${tag(i.k)}</div>${esc(i.t)}</div>`).join('')}</div>`, '按时间倒序；同一天多条按记录顺序');
+  }
+};
+
+/* ---------- 2 我的病 ---------- */
+PAGES.disease = {
+  '原发部位与范围': () => {
+    const s = SUBJ();
+    return `
+    ${card('原发部位', kv([
+      ['原发部位', esc(s.site)],
+      ['亚区', esc(s.siteDetail||'—')],
+      ['说明', s.site==='鼻咽' ? '鼻咽癌以放疗为主，本档案下「手术与切除范围」页签已隐藏（不是删除，切回喉/口腔会重新出现）' : '喉/下咽/口腔以手术为主轴，手术与放疗各自独立记录']
+    ]))}
+    ${notice(`原发部位是<b>视图开关</b>，不是标签。它决定哪些页签显示、哪些记录面升为首要 —— 但同一份数据不会因此丢失。`)}
+    ${card('范围记录', `<p class="hint">范围（局部 / 区域 / 远处）由医生在影像与病理上判断，本工作台只记录「医生说的是什么」与「哪份报告支撑」。</p>
+      ${tbl(['项','值','来源'],[
+        ['T / N / M', s.stage? `${s.stage.t} / ${s.stage.n} / ${s.stage.m}` : '—', s.stage? esc(s.stage.system+' · '+s.stage.by) : '—'],
+        ['总分期', s.stage? esc(s.stage.overall) : '—', s.stage? esc(s.stage.on) : '—']
+      ])}`)}`;
+  },
+  '分期与病理': () => {
+    const s = SUBJ(); const p = s.path;
+    const v = x => x==null || x==='未提及' ? '<span class="src">报告未提及</span>' : esc(x);
+    return `
+    ${card('分期', kv([
+      ['分期系统', esc(s.stage.system)],
+      ['T / N / M', `${esc(s.stage.t)} / ${esc(s.stage.n)} / ${esc(s.stage.m)}`],
+      ['总分期', esc(s.stage.overall)],
+      ['由谁判定', esc(s.stage.by)],
+      ['判定日期', esc(s.stage.on)]
+    ]), '分期是医生的判断，不是工作台算出来的')}
+    ${card('病理逐项', tbl(['项','报告里怎么写','怎么理解'],[
+      ['组织学类型', v(p.histology), '决定后续用什么治疗方向，具体由医生判断'],
+      ['分级', v(p.grade), '分化程度；「未提及」不等于「低级别」'],
+      ['切缘', v(p.margin), '阴性/阳性/近切缘，三者在随访强度上不同'],
+      ['脉管侵犯', v(p.lv), '有/无；「未提及」不等于「无」'],
+      ['神经侵犯', v(p.pn), '同上'],
+      ['淋巴结', p.nodesPositive!=null? `${p.nodesPositive} / ${p.nodesExamined} 阳性` : '<span class="src">报告未提及</span>', '阳性数目与检出总数要一起看'],
+      ['组织学变异型', p.variantRaw? esc(p.variantRaw) : '<span class="src">报告未提及</span>', '未提及 ≠ 没有；也不要自己写成「无」']
+    ]))}
+    ${p.variantRaw ? notice(`报告里出现了变异型描述（${esc(p.variantRaw)}）。本工作台只做两件事：把原文照录下来、提醒你它需要单独问医生。`,'warn') : ''}
+    ${card('生物标志物', s.biomarkers.length ? tbl(['标志物','结果','方法','标本','日期'],[
+      s.biomarkers.map(b=>[esc(b.marker), b.value!=null? esc(String(b.value)) : esc(b.result||'—'), esc(b.method||'—'), esc(b.specimen||'—'), esc(b.on||'—')])
+    ]) + (s.biomarkers.some(b=>b.note) ? `<p class="hint">${esc(s.biomarkers.filter(b=>b.note).map(b=>b.marker+'：'+b.note).join('；'))}</p>`:'') : empty('还没有记录生物标志物'), 'CPS 与 TPS 不是一回事，方法（22C3 / SP263）也不同，必须一起记')}`;
+  },
+  '病理报告原文': () => {
+    const s = SUBJ();
+    return `
+    ${card('报告原文（照录，不改写）', `<pre class="raw">${esc(s.path.raw||'（未录入原文）')}</pre>`, '原文永远保留，摘要只是辅助；两者冲突时以原文为准')}
+    ${card('抽取规则（只抄写，不判断）', `<ul class="qlist">
+      <li>看不清的字<b>留空</b>，不猜、不补全</li>
+      <li>单位认不出就<b>留空</b>，不套用常见单位</li>
+      <li>「&lt;」「≤」这类不等式<b>原样保留</b>，不换算成具体数</li>
+      <li>表格转成竖线表后<b>按位置对齐</b>；数目对不上<b>整行放弃</b></li>
+      <li>解析结果永远只是<b>候选</b>，逐项确认才进事实层</li>
+    </ul>`)}
+    ${notice('本页只呈现「报告上写了什么」。任何一句「这说明…」都不属于这里。','warn')}`;
+  },
+  '名词与不确定': () => {
+    const s = SUBJ();
+    const terms = [
+      ['切缘阴性','手术切下来的边缘没有查到癌细胞','「阴性」是病理科在显微镜下看的结论，不是「保证切干净了」'],
+      ['脉管侵犯','癌细胞出现在血管或淋巴管里','有/无由病理科写；「未提及」要单独去问，不要自己当成「无」'],
+      ['TEP 发音管','放在气管与食管之间的人工通道，靠它说话','它是耗材，会老化、会漏；漏气就该换，不用等固定时间'],
+      ['HME（人工鼻）','盖在造口上的湿热交换器','作用是保住呼吸道的湿度与温度，不是装饰'],
+      ['误吸','东西进到气道里','咳出来是一种；<b>没咳</b>的那种更危险，叫沉默性误吸']
+    ];
+    return `
+    ${card('报告里常见的词，用你自己的话记一遍', `<ul class="qlist">${terms.map(([t,plain,care])=>`<li><b>${t}</b> —— ${plain}<br><span class="src">要注意：${care}</span></li>`).join('')}</ul>`, '这里只解释词义，不解释「你的情况严不严重」')}
+    ${notice('看不懂的词不要跳过。把它写成一条「关切」，复诊时照原文念给医生听 —— 念原文比转述更不容易出错。')}`;
+  }
+};
+
+/* ---------- 3 治疗与手术 ---------- */
+PAGES.tx = {
+  '治疗线': () => {
+    const s = SUBJ();
+    return `
+    ${card('按治疗线分开存', s.lines.length ? tbl(['线','目的','方案','开始','结束','当前'],[
+      s.lines.map(l=>[String(l.no), esc(l.intent), esc(l.name), esc(l.start||'—'), esc(l.end||'进行中'), l.current? tag('当前','teal'):''])
+    ]) : empty('还没有治疗线记录'), '换线不覆盖旧数据：第 2 线开始时第 1 线的记录仍然完整保留')}
+    ${notice('为什么线要单独做一层：同一次治疗里，「方案」可能不变但「目的」变了（根治 → 辅助 → 姑息）。把目的混在方案里，回看时就看不出当时为什么这么治。')}`;
+  },
+  '手术与切除范围': () => {
+    const s = SUBJ(); const g = s.surgery;
+    if(!g) return empty('本档案没有手术记录（鼻咽癌路径下本页签不显示）');
+    return `
+    ${card('术式', kv([
+      ['术式', esc(g.procedure)],
+      ['日期', esc(g.on)],
+      ['入路', esc(g.approach)],
+      ['喉是否保留', g.larynxPreserved? '保留' : '<b>未保留（全喉切除）</b>'],
+      ['声音', g.voiceLost? '<b>原有发声方式不再可用</b>' : '—'],
+      ['永久气管造口', g.permanentStoma? '<b>是</b>' : '否'],
+      ['重建', esc(g.recon||'—')]
+    ]))}
+    ${card('颈清扫', kv([
+      ['侧别', esc(g.neck.side)],
+      ['清扫区', esc(g.neck.levels)],
+      ['副神经', esc(g.neck.spinalAccessory)]
+    ]), '副神经是否保留直接关系到「能不能抬手梳头」，必须单独记')}
+    ${notice(`全喉切除改变的是<b>两件不可逆的事</b>：不能再经口鼻呼吸（永久造口）、原有发声方式不再可用。本工作台不评价这个选择，只保证这两件事在后续每一页都被当作前提。`,'warn')}
+    ${card('术后能做什么（自评，不是评定）', s.functions.length? tbl(['方面','具体动作','现在能不能做到'],[
+      s.functions.map(f=>[esc(f.domain), esc(f.activity), esc(f.ability)])
+    ]) : empty('还没有自评记录'), '自评用来对比变化，不用来判断残疾等级')}`;
+  },
+  '放疗': () => {
+    const s = SUBJ(); const r = s.rt;
+    if(!r) return empty('还没有放疗记录');
+    return `
+    ${card('放疗', kv([
+      ['技术', esc(r.technique)],
+      ['开始', esc(r.start)],
+      ['结束', esc(r.end)],
+      ['剂量 / 次数', `${r.dose} Gy / ${r.fractions} 次`],
+      ['照射范围', r.sites.map(esc).join('；')]
+    ]))}
+    ${notice('放疗结束不等于结束。剂量是累积的，晚期毒性可能在结束后数月到数年才出现 —— 这条轨道单独记在「长期与复诊 › 放疗后十年」。')}`;
+  },
+  '用药与不良反应': () => {
+    const s = SUBJ();
+    return `
+    ${card('用药', s.lines.some(l=>/化疗|顺铂|免疫/.test(l.name)) ? tbl(['方案','起止'],[s.lines.filter(l=>/化疗|顺铂|免疫/.test(l.name)).map(l=>[esc(l.name), esc((l.start||'')+' → '+(l.end||'进行中'))])]) : empty('本档案没有记录全身用药'), '药名、剂量、周期都以医生处方与输液单为准，本页只做记录')}
+    ${notice(`患者只能记<b>疑似</b>不良反应。是否与药物有关、要不要停药，是医生的判断 —— 本页没有「已确认」这个选项。`,'warn')}
+    ${card('如果怀疑是免疫相关不良反应', `<p>免疫治疗的不良反应可能出现在皮肤、肠道、肺、甲状腺、垂体等地方，出现时间也可能在停药之后。</p>
+      <p class="hint">记录方式：写清「什么时候开始、什么表现、当时在用什么药」，不要自己写「是免疫药引起的」。</p>`)}`;
+  }
+};
+
+/* ---------- 4 气道与造口 ---------- */
+PAGES.airway = {
+  '我的气道': () => {
+    const s = SUBJ();
+    if(s.airway.kind==='未记录') return empty('本档案没有气道记录（鼻咽癌路径下本线默认折叠，仍可记录）');
+    return `
+    ${card('气道状态', kv([
+      ['类型', esc(s.airway.kind)],
+      ['建立日期', esc(s.airway.establishedOn||'—')],
+      ['套管型号', esc(s.airway.tubeType||'—')]
+    ]))}
+    ${notice(`<b>永久造口</b>意味着以后都经造口呼吸，不再经口鼻。这不是「暂时不方便」，是身体结构的改变 —— 所以「堵管」「脱管」在本工作台是急症，不是日常小事。`,'warn')}
+    ${card('和普通人不一样的地方', `<ul class="qlist">
+      <li>不能捏着鼻子鼓气（会进到胃里或皮下）</li>
+      <li>洗澡要遮住造口，不能直接冲</li>
+      <li>空气不经过鼻腔加温加湿，所以要用 HME</li>
+      <li>说话时气流不走嘴，需要另建发声方式</li>
+    </ul>`)}`;
+  },
+  '造口日常': () => {
+    const s = SUBJ();
+    if(!s.stoma) return empty('还没有造口护理记录');
+    return `
+    ${card('日常护理', kv([
+      ['湿度', esc(s.stoma.humidity)],
+      ['清洁', esc(s.stoma.cleaning)],
+      ['洗澡', esc(s.stoma.shower)]
+    ]))}
+    ${card('记录一条', `<p class="hint">每次换套管、换 HME、发现皮肤问题时记一条，比事后回忆可靠。</p>
+      ${s.stomaLogs.length ? tbl(['日期','事件','程度','备注'],[s.stomaLogs.map(l=>[esc(l.on), esc(l.event), esc(l.severity), esc(l.note||'—')])]) : empty('还没有记录')}`)}`;
+  },
+  '耗材与库存': () => {
+    const s = SUBJ();
+    if(!s.supplies.length) return empty('还没有耗材记录');
+    return `
+    ${card('库存', tbl(['耗材','规格','剩余','补货线','状态'],[
+      s.supplies.map(x=>[esc(x.item), esc(x.spec), String(x.qty), String(x.reorderAt), x.qty<=x.reorderAt? tag('该补了','crit') : tag('够用')])
+    ]), '耗材是终身消耗品，断供会直接变成急症风险')}
+    ${notice('本工作台不代购、不推荐品牌。只做「还剩多少、到哪补」的记录，采购渠道以当地医保与医院供应为准。')}`;
+  },
+  '堵管与脱管': () => {
+    const s = SUBJ();
+    return `
+    ${card('随身急救卡', `<div class="rescue">
+      <h4>气管造口 · 紧急情况</h4>
+      <div class="big">
+        我做过<b>全喉切除</b>，永久气管造口，<b>不能经口鼻呼吸</b>。<br>
+        如果我说不出话、看起来呼吸困难：<b>请看我的造口，不要只看我的嘴。</b><br>
+        造口被痰痂堵住时：先滴生理盐水、鼓励咳出；<b>不要盲目伸东西进去掏</b>。<br>
+        套管脱出、出血不止、颈部迅速肿胀：<b>立即就近急诊</b>。
+      </div>
+      <div style="margin-top:12px;font-size:12.5px;color:#8a8778">
+        诊断：${esc(s.site)} ${esc(s.path.histology)}　术式：${esc(s.surgery?s.surgery.procedure:'—')}　造口：${esc(s.airway.kind)}<br>
+        过敏：未记录　联系人：未记录（本演示档案不含真实联系方式）
+      </div>
+    </div>
+    <div style="margin-top:12px" class="no-print"><button class="mini" id="btnPrintCard">打印这张卡</button></div>`, '离线可打印；打印时只出这张卡，不出整页')}
+    ${card('急症记录', s.emergencies.length ? tbl(['时间','情况','结果','是否就医'],[
+      s.emergencies.map(e=>[esc(e.at), esc(e.kind), esc(e.outcome), esc(e.wentTo)])
+    ]) : empty('还没有急症记录'), '记下来是为了复诊时能说清「发生过几次、怎么处理的」')}
+    ${fold('造口堵塞时，家里人可以按这个顺序做（不能替代急救）', `<ol style="margin:0;padding-left:20px;line-height:1.9">
+      <li>让他坐起来，不要平躺</li>
+      <li>看造口：有没有干痂、血块、分泌物堵住开口</li>
+      <li>滴几滴生理盐水湿润，鼓励他用力咳</li>
+      <li>如果能吸到气但很费力，尽快去医院</li>
+      <li><b>完全吸不到气、嘴唇发紫</b> —— 立刻打急救电话，同时说明「全喉切除、气管造口」</li>
+    </ol>`)}`;
+  }
+};
+
+/* ---------- 5 声音与沟通 ---------- */
+PAGES.voice = {
+  '发声方式与发音管': () => {
+    const s = SUBJ();
+    return `
+    ${card('用过的发声方式', s.voice.methods.length ? tbl(['方式','开始','结束','当前'],[
+      s.voice.methods.map(m=>[esc(m.method), esc(m.start||'—'), esc(m.end||'—'), m.current? tag('当前','teal'):''])
+    ]) : empty('还没有记录发声方式'), '三种主要方式：食管语、电子喉、TEP 发音管；可以同时用几种')}
+    ${card('发音管更换记录', s.voice.prostheses.length ? tbl(['置入','规格','取出','原因'],[
+      s.voice.prostheses.map(p=>[esc(p.placed), esc(p.spec), esc(p.removed||'在位'), esc(p.reason||'—')])
+    ]) : empty('还没有发音管记录'), '只记「什么时候换的、为什么换」，不存「预计能用多久」')}
+    ${notice(`本工作台<b>不存发音管的「预计寿命」</b>。不同来源给的数字差别很大，写一个数会让患者误以为「没到时间就不用换」。真实判据是漏气、渗漏、感染这些具体现象。`,'warn')}`;
+  },
+  '能说到什么程度': () => {
+    const s = SUBJ();
+    const vf = s.functions.filter(f=>f.domain==='发声');
+    return `
+    ${card('具体场景自评', vf.length ? tbl(['场景','现在'],[vf.map(f=>[esc(f.activity), esc(f.ability)])]) : empty('还没有发声自评'), '用「打电话说清姓名地址」这种具体动作，不用「声音好/不好」')}
+    ${notice('自评的用途是<b>对比自己的变化</b>，不是和别人比，也不是评定残疾等级。')}`;
+  },
+  '说不出来的时候': () => {
+    const s = SUBJ();
+    return `
+    ${card('手边的工具', s.voice.aids.length ? `<ul class="qlist">${s.voice.aids.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>` : empty('还没有记录'))}
+    ${card('别人听不懂时，可以先给对方看这句', `<div class="rescue" style="border-color:var(--teal)">
+      <div class="big">我做过全喉切除，用造口呼吸，说话靠发音管，<b>请慢一点、看我的口型</b>。如果还是听不清，我们可以写字。</div>
+    </div>`, '存在手机备忘录里，或打印成小卡片')}
+    ${notice(`「说三遍人家还听不清，我就不说了」—— 这类退缩在演示档案里被单独记在「心理与家人 › 说不出口的事」。它不是沟通技巧问题。`)}`;
+  }
+};
+
+/* ---------- 6 吞咽与营养 ---------- */
+PAGES.swallow = {
+  '进食方式': () => {
+    const s = SUBJ();
+    return `
+    ${card('现在的进食途径', kv([
+      ['途径', esc(s.feeding.route)],
+      ['从', esc(s.feeding.start||'—')],
+      ['是否当前', s.feeding.current? '是':'否']
+    ]))}
+    ${s.feeding.history.length ? card('既往途径', tbl(['途径','开始','结束'],[s.feeding.history.map(h=>[esc(h.route), esc(h.start), esc(h.end||'—')])])) : ''}
+    ${notice('途径变化（胃管 → 经口）是康复进程里最重要的一条线之一，所以历史要保留，不能只存「现在」。')}`;
+  },
+  '呛咳与误吸': () => {
+    const s = SUBJ();
+    return `
+    ${card('记录', s.aspirations.length ? tbl(['日期','吃什么/喝什么','咳出来','没咳但异常','之后发烧'],[
+      s.aspirations.map(a=>[esc(a.on), esc(a.food), a.coughed? tag('是','warn'):'否', a.silent? tag('是','crit'):'否', a.fever? tag('是','crit'):'否'])
+    ]) : empty('还没有呛咳记录'))}
+    ${notice(`<b>没咳的那种更危险。</b>沉默性误吸不会引起剧烈咳嗽，但东西确实进了气道 —— 表现为「饭后声音变湿、反复低烧、痰变多」。所以本页把「咳出来」和「没咳但异常」分成两列，不合并成一个「有没有呛」。`,'crit')}
+    ${card('怎么记才算有用', `<ul class="qlist">
+      <li>写清<b>吃什么、什么形态</b>（水 / 稀粥 / 干饭），不同形态风险不同</li>
+      <li>写清<b>当时有没有咳</b>，以及之后几小时有没有发烧、痰变多</li>
+      <li>不要写「呛了一下没事」—— 有没有事要看之后几天</li>
+    </ul>`)}`;
+  },
+  '体重': () => {
+    const s = SUBJ();
+    const o = latestObs('weight');
+    const first = o[o.length-1], last = o[0];
+    return `
+    ${card('体重', o.length ? `<div class="stat4"><div class="s"><div class="k">最近</div><div class="v">${last.v} kg</div><div class="src">${last.on}</div></div>
+      <div class="s"><div class="k">较首次</div><div class="v">${(last.v-first.v>0?'+':'')}${(last.v-first.v).toFixed(1)} kg</div><div class="src">首次 ${first.v} kg（${first.on}）</div></div>
+      <div class="s"><div class="k">记录次数</div><div class="v">${o.length}</div><div class="src">${o[o.length-1].on} → ${o[0].on}</div></div></div>
+      <div style="margin-top:14px">${tbl(['日期','体重','来源'],[o.map(x=>[esc(x.on), x.v+' kg', esc(x.lab||'—')])])}</div>`
+      : empty('还没有体重记录'), '称重条件（同一台秤、同一时间）要一致，否则趋势会被误差淹没')}
+    ${notice('体重下降本身不是结论。要结合「吃得下吗」「有没有呛」「白蛋白怎么样」一起看 —— 所以它在 C 轨，不在 A 轨。')}`;
+  },
+  '吃什么与营养支持': () => {
+    const s = SUBJ();
+    return `
+    ${card('进食记录', s.intake.length ? tbl(['日期','形态','胃口','备注'],[
+      s.intake.map(i=>[esc(i.on), esc(i.form), esc(i.appetite), esc(i.note||'—')])
+    ]) : empty('还没有进食记录'), '形态用「普通 / 软食 / 半流质 / 流质」四档，和黏膜炎分级同一套锚点')}
+    ${notice(`本工作台<b>不写「多喝水有益健康」这类通用建议</b>。对这条线，喝水的含义取决于具体情境：放疗后口干要少量多次，而有吞咽困难的人大口喝水恰恰是最容易呛的。`,'warn')}
+    ${card('营养支持', `<p class="hint">是否需要用营养补充剂、要不要放胃管或胃造瘘，是医生与营养师根据体重趋势、白蛋白、进食量共同判断的。</p>
+      <p>本页只做三件事：记录吃了什么形态、记下体重趋势、把「吃不下」写成一条可以问的问题。</p>`)}`;
+  }
+};
+
+/* ---------- 7 长期与复诊 ---------- */
+PAGES.late = {
+  '放疗后十年': () => {
+    const s = SUBJ();
+    const tox = s.lateTox;
+    return `
+    ${card('晚期毒性记录', tox.length ? tbl(['方面','出现时间','具体表现','治疗结束后'],[
+      tox.map(t=>[esc(t.domain), esc(t.on), esc(t.severity), t.yearsAfter!=null? t.yearsAfter+' 年':'—'])
+    ]) : empty('还没有晚期毒性记录'), '「治疗结束后多久」比绝对日期更有用，因为它能对上随访节点')}
+    ${card('张口度', s.trismus.length ? tbl(['日期','门齿间距'],[s.trismus.map(t=>[esc(t.on), t.mm+' mm'])]) : empty('还没有张口度记录'), '张口受限是放疗后常见晚期改变，用毫米记，不用「有点紧」')}
+    ${card('看牙', s.dental.length ? tbl(['日期','事件','有没有告诉牙医放疗史','备注'],[
+      s.dental.map(d=>[esc(d.on), esc(d.event), d.rtDisclosed? tag('告诉了','teal'):tag('没说','crit'), esc(d.note||'—')])
+    ]) : empty('还没有看牙记录'), '放疗后的牙科处置有特殊风险，牙医必须知道放疗史')}
+    ${notice('这条轨道是「十年」不是「三个月」。放疗结束后的口干、牙关紧闭、龋齿、甲状腺功能减退，都可能在很久之后才出现 —— 所以它单独成轨，不和急性期混在一起。')}`;
+  },
+  '复诊带什么': () => {
+    const s = SUBJ();
+    return `
+    ${card('随访计划', s.followups.length ? tbl(['项目','间隔/依据','下次','来源版本'],[
+      s.followups.map(f=>[esc(f.item), esc(f.interval), esc(f.next||'—'), esc(f.src+' · '+f.ver)])
+    ]) : empty('还没有随访计划'), '间隔写「依据原文」而不是写一个数字，因为不同医院方案不同')}
+    ${card('复诊摘要（可打印）', `<p class="hint">摘要由五块拼成：最近指标、当前用药与治疗线、未解决的关切、造口与发声现状、这次想问的问题。缺哪块就写「本次未带」。</p>
+      <div class="no-print"><button class="mini" id="btnPrintSummary">打印摘要</button></div>
+      ${notice('打印内容<b>默认不含私密记录</b>。要包含需在「资料与导出」里显式勾选。','warn')}`)}
+    ${card('这次想问的问题', s.concerns.filter(c=>!c.addressed).length ? `<ul class="qlist">${s.concerns.filter(c=>!c.addressed).map(c=>`<li>${esc(c.text)} ${c.asked? tag('已问过','teal'):tag('还没问')}</li>`).join('')}</ul>` : empty('没有未解决的关切'))}`;
+  },
+  '关切清单': () => `<div id="concernHost"></div>`,
+  '随访记录': () => {
+    const s = SUBJ();
+    return card('随访记录', s.followupRecords.length ? tbl(['日期','科室','小结'],[
+      s.followupRecords.map(r=>[esc(r.on), esc(r.dept), esc(r.summary)])
+    ]) : empty('还没有随访记录'), '小结写「医生说了什么」，不写「我觉得怎么样」');
+  }
+};
+
+/* ---------- 8 指标分析 ---------- */
+PAGES.metrics = {
+  '指标卡片': () => `
+    ${notice('卡片正面是最近一次值与变化，<b>点卡片或按回车</b>翻到背面看趋势。每条曲线按该指标自己的全期 min/max 归一化。')}
+    <div class="grid3" id="cardHost"></div>
+    ${card('这里的卡片和其它页的关系', `<p>同一份指标目录与同一份观察记录，同时供「指标卡片」「一图秀」「复诊摘要」「导出」使用 —— 不是四份数据。</p>`)}`,
+  '一图秀': () => `
+    ${card('多指标时间轴', `
+      <div style="display:flex;gap:6px;margin:0 0 12px" id="winBtns">
+        <button class="mini" data-win="all" aria-pressed="${STATE.win==='all'}">全部</button>
+        <button class="mini" data-win="3m" aria-pressed="${STATE.win==='3m'}">近 3 月</button>
+      </div>
+      <div class="chart-wrap" id="chartHost"></div>
+      <div class="legend" id="chartLegend"></div>`, '每条线独立归一化，因此<b>不同指标的高低不可比较</b>；单点只画点不连线')}
+    ${notice('治疗事件（手术 / 放疗 / 发音管）画在上方的菱形与虚线上，和数据区是分层的 —— 它们不是数值，不能被读成曲线的一部分。')}`,
+  '分级说明': () => {
+    const s = SUBJ();
+    return `
+    ${card('口腔黏膜炎 · WHO 分级', tbl(['级别','进食形态','说明'],[
+      ['0 级','正常','无黏膜改变'],
+      ['1 级','普通','红斑、轻微疼痛'],
+      ['2 级','半流质','溃疡，能进半流质'],
+      ['3 级','流质','只能进流质'],
+      ['4 级','不能进食','无法经口进食']
+    ]), '本工作台采用 WHO 口径，因为它按「今天能吃什么形态」分级，患者自己就能判断')}
+    ${notice(`分级是<b>对照</b>，不是诊断。徽章写「对照 WHO 分级」，并显示区间与来源。<b>不采用 CTCAE 作为该指标口径</b> —— CTCAE 需要口腔检查所见，患者填不了。`,'warn')}
+    ${card('当前记录', s.mucositis.length ? tbl(['日期','级别','进食形态','备注'],[
+      s.mucositis.map(m=>[esc(m.on), m.grade+' 级', esc(m.form), esc(m.note||'—')])
+    ]) : empty('还没有黏膜炎记录'))}
+    ${src('WHO 口腔黏膜炎分级（1979）；EV-02 指出尚无证据显示某一种分级标准更优，故按可自评性选择口径')}`;
+  }
+};
+
+/* ---------- 9 心理与家人 ---------- */
+PAGES.mind = {
+  '我现在的感受': () => `<div id="vpHost"></div>`,
+  '家里人要做什么': () => {
+    const s = SUBJ();
+    return `
+    ${card('照护者记录', s.caregiver.length ? `<ul class="qlist">${s.caregiver.map(g=>`<li>${esc(g.text)}<br><span class="src">${esc(g.on)} · 记录人：${esc(g.by)}</span></li>`).join('')}</ul>` : empty('还没有照护者记录'), '「记录人」与「记录的是谁」是两个独立字段')}
+    ${notice(`照护者可以代记，但<b>代记不等于替患者做决定</b>。凡是涉及「他怎么想」的内容，本工作台默认设为私密，不会进入给医生的摘要。`,'warn')}
+    ${card('可以帮的三件事', `<ul class="qlist">
+      <li>帮他记住「要问医生的问题」，复诊时念原文</li>
+      <li>在他说话时<b>不替他说完</b>，等他把话说完</li>
+      <li>造口急症时知道该说什么（见「气道与造口 › 堵管与脱管」的急救卡）</li>
+    </ul>`)}`;
+  },
+  '说不出口的事': () => {
+    const s = SUBJ();
+    const priv = s.viewpoints.filter(v=>v.vis==='private');
+    return `
+    ${notice(`这一页的内容<b>默认私密</b>：不进复诊摘要、不进导出、不进给家人的视图。要看它，只能在本机、由本人打开。`,'crit')}
+    ${card('只写给自己看的', priv.length ? `<ul class="qlist">${priv.map(v=>`<li>${tag(v.kind)} ${esc(v.text)}<br><span class="src">${esc(v.on)}</span></li>`).join('')}</ul>` : empty('还没有记录'))}
+    ${card('为什么要把这些单独放一页', `<p>「晚上睡不着，老想最坏的情况，但不想让他们担心」「说三遍人家还听不清，我就不说了」—— 这些话如果混在病历里，会跟着摘要一起给医生和家属看，于是患者就不写了。</p>
+      <p class="hint">私密不是「锁起来」的噱头，是让这类记录<b>有可能存在</b>的前提。</p>`)}`;
+  }
+};
+
+/* ---------- 10 资料与导出 ---------- */
+PAGES.data = {
+  '我的资料与草稿': () => {
+    const s = SUBJ();
+    return `
+    ${card('资料', s.docs.length ? tbl(['文件','类型','解析状态','路径'],[
+      s.docs.map(d=>[esc(d.title), esc(d.kind), d.state==='已解析'? tag(d.state,'teal'):tag(d.state,'warn'), `<span class="src">${esc(d.path)}</span>`])
+    ]) : empty('还没有资料'))}
+    ${card('待核对的草稿', s.drafts.length ? tbl(['字段','抄下来的值','单位','状态','备注'],[
+      s.drafts.map(d=>[esc(d.field), esc(d.value), esc(d.unit||'—'), tag(d.state,'warn'), esc(d.note||'—')])
+    ]) : empty('没有待核对的草稿'), '草稿不是事实。逐项确认后才进指标与档案')}
+    ${notice('解析由用户显式触发，且会告知「原件要出本机」。本演示档案不含真实文件，路径为示意。','warn')}`;
+  },
+  '导出给医生': () => {
+    const s = SUBJ();
+    const privCount = s.viewpoints.filter(v=>v.vis==='private').length + s.concerns.filter(c=>c.vis==='private').length;
+    return `
+    ${card('导出选项', `<div class="grid2">
+      <div><label style="display:flex;gap:8px;align-items:center;font-size:13.5px"><input type="checkbox" id="optPrivate"> 包含私密记录（${privCount} 条）</label>
+      <p class="hint" style="margin:8px 0 0">默认不包含。勾选后会明确提示「这些内容将出现在给医生看的文件里」。</p></div>
+      <div><p class="hint" style="margin:0">导出格式：可打印摘要（A4）/ 纯文本。本演示环境不生成真实文件。</p></div>
+    </div>`)}
+    ${notice('导出必须得到<b>格式真实的文件</b>，而不是弹一句「已导出」。演示阶段明确标注未接通，不做假成功。','warn')}
+    ${card('摘要包含什么', `<ul class="qlist">
+      <li>基本信息与诊断（原发部位、分期、病理要点）</li>
+      <li>治疗线一览（含起止与目的）</li>
+      <li>最近 3–6 次关键指标与趋势</li>
+      <li>造口与发声现状、进食途径</li>
+      <li>未解决的关切与这次想问的问题</li>
+    </ul>`, '缺的项写「本次未带」，不写「无」——「没查」与「正常」是两件事')}`;
+  }
+};
+
+/* ============================================================
+   动态挂载：关切清单 / 感受
+   ============================================================ */
+function mountConcerns(){
+  const host = $('#concernHost'); if(!host) return;
+  const s = SUBJ();
+  const rows = s.concerns.map(c=>`
+    <div class="concern" data-id="${c.id}">
+      <div>
+        <div class="txt">${esc(c.text)} ${c.vis==='private'? tag('私密','crit'):''}</div>
+        <div class="meta">${esc(c.kind)}${c.asked? ' · 已问过' : ' · 还没问'}${c.answer? ' · 医生回答：'+esc(c.answer) : ''}</div>
+      </div>
+      <div class="ops">
+        <button class="mini" data-act="asked" aria-pressed="${!!c.asked}">问过了</button>
+        <button class="mini" data-act="done" aria-pressed="${!!c.addressed}">解决了</button>
+        <button class="mini" data-act="vis" aria-pressed="${c.vis==='private'}">私密</button>
+      </div>
+    </div>`).join('');
+  host.innerHTML = `<div class="card"><h3>关切清单</h3>
+    <p class="hint">把「想问的」和「担心的」都丢进来。解决了的不要删 —— 复诊时能看到「这个问题问过了、当时医生怎么答」。</p>
+    ${rows || empty('还没有记录')}
+    <div class="addrow">
+      <input id="cInput" placeholder="想问的 / 担心的…">
+      <select id="cKind"><option>要问的问题</option><option>担心</option></select>
+      <button id="cAdd">加一条</button>
+    </div></div>`;
+  host.querySelectorAll('.concern').forEach(row=>{
+    row.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      const c = s.concerns.find(x=>x.id===row.dataset.id);
+      if(b.dataset.act==='asked') c.asked = c.asked?0:1;
+      if(b.dataset.act==='done') c.addressed = c.addressed?0:1;
+      if(b.dataset.act==='vis') c.vis = c.vis==='private'? 'shared':'private';
+      mountConcerns();
+    }));
+  });
+  $('#cAdd').addEventListener('click',()=>{
+    const v = $('#cInput').value.trim(); if(!v) return;
+    s.concerns.unshift({ id:'c'+Date.now(), text:v, kind:$('#cKind').value, asked:0, answer:null, addressed:0, vis:'private' });
+    mountConcerns(); toast('已加入关切清单（默认私密）');
+  });
+}
+
+function mountViewpoints(){
+  const host = $('#vpHost'); if(!host) return;
+  const s = SUBJ();
+  const rows = s.viewpoints.map(v=>`<li>${tag(v.kind)} ${esc(v.text)}<br><span class="src">${esc(v.on)} · ${v.vis==='private'?'仅本人可见':'可与医生共享'}</span></li>`).join('');
+  host.innerHTML = `
+    ${notice(`本页默认私密，<b>不会进入复诊摘要与导出</b>。`,'crit')}
+    <div class="card"><h3>记一条</h3>
+      <p class="hint">不用组织语言，也不用判断该不该有这种感觉。</p>
+      <ul class="qlist">${rows || '<li class="src">还没有记录</li>'}</ul>
+      <div class="addrow">
+        <input id="vInput" placeholder="今天的感觉…">
+        <select id="vKind"><option>感受</option><option>病耻</option><option>外形</option><option>害怕复发</option><option>疲惫</option></select>
+        <button id="vAdd">记下</button>
+      </div>
+    </div>`;
+  $('#vAdd').addEventListener('click',()=>{
+    const v = $('#vInput').value.trim(); if(!v) return;
+    s.viewpoints.unshift({ id:'v'+Date.now(), kind:$('#vKind').value, text:v, on:new Date().toISOString().slice(0,10), vis:'private' });
+    mountViewpoints(); toast('已记录（私密）');
+  });
+}
+
+/* ============================================================
+   全局交互
+   ============================================================ */
+function bindPageActions(){
+  const pb = $('#btnPrintCard');
+  if(pb) pb.addEventListener('click',()=>{ window.print(); });
+  const ps = $('#btnPrintSummary');
+  if(ps) ps.addEventListener('click',()=>{ window.print(); });
+  $$('#winBtns button').forEach(b=>b.addEventListener('click',()=>{
+    STATE.win = b.dataset.win; render();
+  }));
+}
+
+function init(){
+  $('#prof').addEventListener('change', e=>{
+    STATE.profile = e.target.value;
+    STATE.page = 'board'; STATE.tab = '今天要知道的';
+    render();
+    toast('已切换到 ' + SUBJ().name);
+  });
+  $('#btnPrint').addEventListener('click', ()=>window.print());
+  $('#btnAgent').addEventListener('click', ()=>{
+    const on = $('#shell').classList.toggle('with-agent');
+    $('#btnAgent').setAttribute('aria-pressed', String(on));
+  });
+  $('#btnAgentClose').addEventListener('click', ()=>{
+    $('#shell').classList.remove('with-agent');
+    $('#btnAgent').setAttribute('aria-pressed','false');
+  });
+  $('#btnCopyPrompt').addEventListener('click', ()=>{
+    const s = SUBJ();
+    const txt = `我在用「小言宝 VoicePal」记录${s.site}癌的治疗与康复。当前页：${NAV.find(n=>n.id===STATE.page).name} › ${STATE.tab}。\n我的情况：${s.site} ${s.siteDetail}，${s.stage.overall}，${s.surgery? s.surgery.procedure : '未手术'}，${s.airway.kind}。\n请基于以上信息帮我整理这次想问医生的问题。不要替我判断治疗方案。`;
+    navigator.clipboard?.writeText(txt); toast('已复制场景提示词');
+  });
+  $('#btnCopySummary').addEventListener('click', ()=>{
+    const s = SUBJ();
+    const txt = `${s.name}｜${s.site} ${s.siteDetail}｜${s.stage.overall}\n治疗线：${s.lines.map(l=>l.no+'. '+l.name).join('；')}\n气道：${s.airway.kind}\n最近体重：${(latestObs('weight')[0]||{}).v||'—'} kg\n未解决关切：${s.concerns.filter(c=>!c.addressed).map(c=>c.text).join('；')||'无'}`;
+    navigator.clipboard?.writeText(txt); toast('已复制本页要点');
+  });
+  $('#agentSend').addEventListener('click', ()=>{
+    const v = $('#agentInput').value.trim(); if(!v) return;
+    const box = $('#agentMsgs');
+    box.insertAdjacentHTML('beforeend', `<div class="m me">${esc(v)}</div>`);
+    box.insertAdjacentHTML('beforeend', `<div class="m ai">（演示环境）这里会由 AI 助手回答。真实版本接入 DSH 原生会话，不会在页面内自造一套聊天。</div>`);
+    $('#agentInput').value = ''; box.scrollTop = box.scrollHeight;
+  });
+  $('#agentInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#agentSend').click(); });
+  render();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
