@@ -226,9 +226,11 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 
 2026-10-25 头颈癌 M6 · **装了能开、进去是空库**：`package.json` 的 `files` 白名单里没有 `public/` 和 `schema/migrations/`。tgz 打出来 24 个文件，`npm pack --dry-run` 的清单里干干净净——就是没有那两样。
 
-- **两个故障，两种症状，都不报错**：
-  1. 缺 `public/` → iframe 请求 `/api/<slug>/ui/` 得到 404/兜底，业务区空白。这个还算显眼。
-  2. 缺 `schema/migrations/` → `dsh/store.js` 的 `readdirSync(MIGRATIONS_DIR)` 读不到 `.sql`，**一张表都不建**，但服务照常启动、`/health` 照常 200、界面照常打开，只是所有列表空着。看起来像「还没有数据」，实际是「没有表」。**静默空库比白屏难查十倍。**
+- **两个故障，症状不同**（2026-10-25 在打包产物上实测，不是推断）：
+  1. 缺 `public/` → iframe 请求 `/api/<slug>/ui/` 得到 404，业务区空白。显眼。
+  2. 缺 `schema/migrations/` → 本项目 M5d 写了守卫 `if (!files.length) throw new Error('找不到迁移文件：' + MIGRATIONS_DIR)`，所以实测是**开库直接抛错**（`找不到迁移文件：…/schema/migrations`），面板报错。
+     **但守卫是我自己加的，不是默认行为**：若写成 `existsSync(dir) ? readdirSync(dir) : []`，就会静默建 0 张表、服务照常起、`/health` 照常 200、界面照常开、所有列表空着——看起来像「还没有数据」。**这类静默故障不会在 dev-server 上暴露。**
+- **教训的落点因此变了**：运行期守卫只能把"静默"变成"报错"，**装不进去这件事必须靠打包时拦住**。
 - **为什么静态检查抓不到第 2 个**：`MIGRATIONS_DIR = join(HERE, '..', 'schema', 'migrations')` 是**运行时拼出来的路径**，不是 `import`。`check-workbench-package` 的规则⑥只管 import 落点，规则⑦只管 `public/`。所以第 2 个缺口在整套检查器里是**盲区**——上一轮 ATTR 的「踩 5」是 import，能被⑥抓住，于是很容易误以为"这类问题已经有闸门了"。
 - **元教训**：**"有闸门"不等于"这类问题有闸门"。** 同一个大类（files 白名单漏文件）里，import 型和运行时拼路径型是两种机制，前者能静态查、后者不能。判断闸门覆盖率要看**机制**，不要看**症状**。
 - **落地**：新增 `test/pack-contents.test.mjs`（4 条，用 `npm pack --dry-run --json` 拿真实清单）——断言 tgz 必须有 `public/index.html`、`public/live.js`、`schema/migrations/*.sql`（且含 `0001_`）、`cordis.patch.yml` 且 patch 声明 `config.root`。这是本项目第一条**以打包产物为对象**的测试，不落盘、不留临时 tgz。

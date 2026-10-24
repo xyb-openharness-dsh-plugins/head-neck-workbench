@@ -33,7 +33,8 @@
     "check:chart": "python3 scripts/measure-one-chart.py",
     "test": "node --test test/*.test.mjs",
     "check:version": "node scripts/check-version.mjs",
-    "check:wording": "node scripts/check-wording.mjs"
+    "check:wording": "node scripts/check-wording.mjs",
+    "probe:restart": "node scripts/probe-restart-persistence.mjs"
   },
   "dsh": {
     "bundle": {

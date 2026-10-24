@@ -70,6 +70,8 @@
 
 **双向验证**（只验一个方向等于没验）：真缺陷上必响——本项目抽掉 `schema/migrations` 后规则⑨ 报出 `schema/migrations ← read at runtime by dsh/store.js`；全家族 **27 个 `*-workbench` 仓 0 命中**，无误报。
 
+**一条说法被实测推翻并已改正**：先前文档写"缺迁移会静默空库"。2026-10-25 在**打包产物**上实测：本项目 M5d 写了守卫 `if (!files.length) throw`，实际是**开库直接抛错**（`找不到迁移文件：…/schema/migrations`），面板报错而非列表空着。静默空库只在没有守卫的写法（`existsSync(dir) ? readdirSync(dir) : []`）下才发生。已同步修正 `docs/LESSONS.md` 与脚手架 `docs/LESSONS.md`——**运行期守卫只能把"静默"变成"报错"，装不进去这件事必须靠打包时拦住**。
+
 ## 下一步具体动作
 
 1. **用户完整退出并重开 DSH Desktop**，验收左侧工作台入口、顶栏 AI 按钮、右侧会话拖拽、业务页读写是否真的可用。
