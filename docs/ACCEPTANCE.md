@@ -31,7 +31,7 @@ Agent 是否运行在目标 Desktop 内：**是**——所以本 Agent 不自行
 
 | ID | 操作与预期 | 结果/证据 | 状态 |
 | --- | --- | --- | --- |
-| ACC-11 | UI 确认版本与实际实现对应；关键流程、容器尺寸、异常状态有预览 | 原型 SHA-256 `e00f74c9…`（G2 确认时为 `75deabb7…`，后经颈清扫空值崩溃修复变更，视觉未改）与 `public/index.html` 同源（`build-public --check` 同步）；`_shots/` 12 张 | 通过 |
+| ACC-11 | UI 确认版本与实际实现对应；关键流程、容器尺寸、异常状态有预览 | 原型 SHA-256 `10bad5db…`（G2 确认时为 `75deabb7…`，后经颈清扫空值崩溃修复变更，视觉未改）与 `public/index.html` 同源（`build-public --check` 同步）；`_shots/` 12 张 | 通过 |
 | ACC-12 | 重启恢复记录；首页/详情/导出/Agent 快照一致 | **打包产物级已验**：解 tgz 到 `/tmp/hn-tgz-probe`，`openStore()` 建 46 表 → `seedIfEmpty()` 灌 8 指标/56 观察 → `insert('concerns')` 写一条 → 关闭连接 → 同一 DB 路径重新 `openStore()` → 关切数 3→4 且能读到刚写那条 → **PASS 重启不丢数据**。顺带证实约束在生效：写入 `kind:'private'` 被 CHECK 拒绝（`kind IN ('担心','要问的问题','生活困难','其他')`）。原型层另有 `verify-live.py` 判据 4 | `node /tmp/probe-restart.mjs` | 通过 |
 | ACC-13 | 纠正/删除后旧摘要和缓存失效，主体与工作区隔离 | 删除走 `DELETE /entities/:table/:id`；`/bootstrap?subject=` 按主体取数；无缓存层 | 通过 |
 | ACC-14 | 可选记忆服务离线/同步失败仍能操作业务；恢复后幂等追平 | **不适用**：未启用可选记忆服务 | 不适用 |

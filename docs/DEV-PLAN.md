@@ -13,7 +13,7 @@
 | **M0** | 骨架 | ✅ 完成 | `dsh-wb-cli 1.5.0` init 生成 150 文件；`dsh-wb-cli check .` → `staticPass: true`；提交 `f85a3b9` | — |
 | **M1** | 调研 + SPEC | ✅ 完成 | `docs/RESEARCH-2026-10-25.md`（8 条证据 A/B 分级 + 12 维度 + 4 轨道 + 8 缺口）、`docs/SOURCES.md`（M01–M08）、`research/` 三份事实提取 | — |
 | **G1** | HVT 五层审核 | ✅ 完成 | `docs/HVT-REVIEW.md`（B=0、G=1、U=6）、`docs/DIFF-MATRIX.md`（6 条 S→F→A 五层齐）、`docs/SCENARIO-PATHS.md`（S01–S17） | U 级 6 条待核验（不阻塞 G1） |
-| **M2** | 原型 | ✅ 完成 | `prototypes/v0.1/index.html`（10 一级 / 34 二级，SHA-256 `e00f74c9f7d635082f9b8d9996b3f675bb8c76416d042568ceb9ab544133bfaf`）；`scripts/verify_prototype.py` **24/24**；`_shots/` 12 张截图 | — |
+| **M2** | 原型 | ✅ 完成 | `prototypes/v0.1/index.html`（10 一级 / 34 二级，SHA-256 `10bad5db47de100eeec629f6afd1208459cb17ffbaa8b77eff9e64d9aaa615df`）；`scripts/verify_prototype.py` **24/24**；`_shots/` 12 张截图 | — |
 | **G2** | 原型确认 | ✅ 完成 | 用户原话（m05978）：「G2确认，继续完成开发到M9」；此前 m05820「确认，继续」确认 S09/S12/S14 保留原设计 | — |
 | **M3** | 数据模型 | ✅ 完成 | `docs/SCHEMA.md` + `schema/draft/0001_initial.sql`（**46 表 · 63 索引 · 35 表带 CHECK**）；`scripts/check-schema-draft.mjs` **24/24** | — |
 | **G3** | schema 冻结 | ✅ 完成 | `schema/migrations/0001_initial.sql`（冻结副本，头部写明「G3 由用户 m05978 授权进入实施」）；`dsh/store.js` 启动即按目录内 `.sql` 递增迁移 | — |
