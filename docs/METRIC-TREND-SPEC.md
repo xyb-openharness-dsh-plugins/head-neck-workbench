@@ -18,6 +18,6 @@
 | HTML版本/路径/hash/截图 | v0.1，`prototypes/v0.1/index.html`。文件哈希与截图清单见 `docs/PROTOTYPE-REVIEW.md`、`docs/DEMO-INDEX.md`。C1–C12 实测脚本：`scripts/measure-one-chart.py`（真浏览器 `channel='chrome'`）。 |
 | 开发者确认版本、日期、模块范围 | **待确认**（不默认签认）。待确认范围：指标卡片（8 卡 / 276px / 翻转）、一图秀（3 条默认 / 治疗节点 / 时间窗）、分级说明页。 |
 | MT01–MT15结果/证据/偏差 | 已实测：MT 卡片固定高 276、翻转不位移（Δ=0）、翻转态独立（`[true,false×7]`）、0/1/多条三态文案、跨方法分组、组顺序 A→B→C→D 两页一致、`aria-pressed` 与 `inert`。**未测**：读屏软件实际朗读、大字模式（340px）、700px 阈值切换、来源点命中回源（未实现）。**不凭「24/24 自检通过」算 UI 通过**——自检脚本覆盖的是页面级断言，不等于 MT 全项。 |
-| Desktop app/profile/RC与人工验收 | **未实机验证**。本项目尚未装进 DSH Desktop（无 remote 仓、未打包）。 |
+| Desktop app/profile/RC与人工验收 | **界面未实机验证**。包已打出（0.1.0，27 文件，3.37 MiB）、已装进 `profiles/web` 并登记 bundles、已有私有远端仓与 Release `v0.1.0`；装机副本上 `probe:restart` / `probe:routes` / `verify-tabs-on-artifact.py`（10 一级 / 34 二级）均通过。但**宿主进程尚未加载该插件**（装机时间晚于宿主启动），界面须用户完整退出重开 DSH Desktop 后验收——包已安装 ≠ 界面已加载。 |
 
 接口/数据库变化需单列迁移与旧数据兼容，不因增加分类Tab而另存重复病历。本项目新增普通指标走 `metric_definitions` 插行、**不迁移**；新增一类检查（如新增「肺功能」）才做结构迁移。

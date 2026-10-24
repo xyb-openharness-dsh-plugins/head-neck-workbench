@@ -50,13 +50,13 @@
 - 真实文件解析（PDF/报告导入）：未接通，`docs/18-MINERU-PARSING.md` 接口与设置页骨架未做。
 - 性能（SQLite 查询、图表大数据量）：**未测量**。
 
-## M8 状态回填（已完成，未推送）
+## M8 状态回填（已完成并推送）
 
-组织 `~/Downloads/.github/BACKLOG.md` 两处按事实更新，本地 commit `a6ef38f`：
-- 第 73 行主表：`🟡 v0.1.0 脚手架已 init，远端仓待建` → `🔵 v0.1.0 M0–M6 代码与打包完成、本机已装待真机验收，远端仓未建（未授权推送）`
+组织 `~/Downloads/.github/BACKLOG.md` 两处按事实更新，推送 commit `097dbc0`：
+- 第 73 行主表：`🟡 v0.1.0 脚手架已 init，远端仓待建` → `🔵 v0.1.0 已发布（tag + Release 附 tgz），M0–M7 完成、本机已装待重启验收`
 - 第 199 行 W5 表：补 G1/G2/G3 已过、10 一级 / 34 二级原型 + 46 表 SQLite + customFrame 外壳；「需覆盖鼻咽癌」→「已覆盖鼻咽癌独立路径（33 二级）」
 
-**未 push**：该仓 `main` 领先 `origin/main` 两个 commit（`ed69f11` 认领 + `a6ef38f` 回填），推送需授权。
+**rebase 踩坑**：推送时 origin/main 已被他人推进（肾癌更新 `cd1612a`），本地 3 个 commit 分叉且 `BACKLOG.md` 冲突（「三、总量 / 当前已启动」那一行两边都在猜工作台数量）。**不猜、实查**：`gh repo list` → 28 仓、其中 `*-workbench` **24 个**；本地另有 3 个仅本地存在（biliary-tract-workbench / sarcoma-workbench / cancer-psych-support-workbench）→ 改写为「27 个工作台；远端仓 24 个，另有 3 个仅本地」并注明计数口径（`xyb-workbench` / `xfb-workbench` / `xiaoxinbao-workbench` 为站点工具仓不计入）。
 
 ## M9 教训回流（已完成）
 
