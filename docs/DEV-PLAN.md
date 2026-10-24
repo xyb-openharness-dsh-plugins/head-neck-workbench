@@ -21,10 +21,10 @@
 | **M5** | 开发版 | 🔵 **已执行未验证** | `lib/version.js`、`lib/layout.js`（含 `customFrame: true`）、`lib/client.js`（customFrame 外壳）、`dsh/store.js`（46 表迁移 + 演示种子）、`dsh/server.js`（health/bootstrap/seed/export/entities CRUD/静态 UI）、`public/live.js`（读写闭环）；`scripts/verify-live.py` **8/8**；`npm run check` 全绿（`staticPass: true`、文案 0 违规、schema 24/24、原型 24/24、conformance **31/33**·0 失败·2 待人工） | Desktop 内真机验收（需用户重启后做） |
 | **M6** | 装机 | 🔵 **已执行未验证** | `release/xyb-community-head-neck-workbench-0.1.0.tgz`（SHA-256 `5207dd1e…`，27 文件，含 `public/` 与 `schema/migrations/`）；已 `pnpm add` 到 Desktop profile 并写入 `dsh.profile.bundles`；`scripts/check-install.mjs` → ✓ 已登记；装机副本探针 `/health` `/ui/` `/ui/live.js` `/bootstrap` 全 200、46 表建成 | 重启 DSH Desktop 后的真机界面验收 |
 | **M7** | 发布 | ⬜ **未开始** | — | — |
-| **M8** | 状态回填 | ⬜ **未开始** | 需回填组织 `BACKLOG.md` 对应行 | — |
-| **M9** | 回流 | ⬜ **未开始** | 教训需变成脚手架可执行闸门 | — |
+| **M8** | 状态回填 | 🔵 **已回填，未推送** | 组织 `BACKLOG.md` 两处（第 73 行主表、第 199 行 W5 表）已按事实改为「M0–M6 代码与打包完成、本机已装待真机验收」；本地 commit `a6ef38f`。**未 push**（无推送授权，且该仓无 remote 配置指向） | `~/Downloads/.github` `git log a6ef38f` |
+| **M9** | 回流 | ✅ **完成** | 两条教训回流成脚手架 1.5.1 的可执行闸门：①**规则⑨**——运行期按拼出来的路径读目录必须随包发出（⑥ 管 import、⑦ 管 public，这一类是盲区）；②**`templates/test-pack-contents.test.mjs`**——以 `npm pack` 真实清单为对象断言，自适应跳过项目还没有的目录，生成项目自带 `test` 脚本且 `release:check` 串上 test。另写 LESSONS 第 9 类「判断闸门覆盖率要看机制不要看症状」 | starter commit `7d5bbdd`；`npm test` 37/37；新生成项目 `npm run check` 退出 0、`npm test` 4/4 |
 
-**一句话现状**：M0–M3、G2、G3、M5、M6 的**代码与打包**都已落地并自测通过；M5/M6 停在 🔵，因为「装进 Desktop 后界面真的能用」必须由用户在重启后的真机上确认——Agent 自测不等于装机可用。M4 不适用，M7–M9 未开始。
+**一句话现状**：M0–M3、G2、G3、M5、M6 的**代码与打包**都已落地并自测通过；M5/M6 停在 🔵，因为「装进 Desktop 后界面真的能用」必须由用户在重启后的真机上确认——Agent 自测不等于装机可用。M4 不适用。**M8 已回填但未推送**（无授权）。**M9 已完成**（教训已成脚手架 1.5.1 的规则⑨与打包产物测试）。**M7 未开始且需要显式授权**：建远端仓、push、打 tag、GitHub Release、市场投稿，这几步对外可见且不可撤回，按项目规则不能由 Agent 自行决定。
 
 ## 二、闸口顺序（不可跳）
 

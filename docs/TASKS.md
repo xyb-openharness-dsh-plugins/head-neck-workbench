@@ -48,11 +48,30 @@
 - 真实文件解析（PDF/报告导入）：未接通，`docs/18-MINERU-PARSING.md` 接口与设置页骨架未做。
 - 性能（SQLite 查询、图表大数据量）：**未测量**。
 
+## M8 状态回填（已完成，未推送）
+
+组织 `~/Downloads/.github/BACKLOG.md` 两处按事实更新，本地 commit `a6ef38f`：
+- 第 73 行主表：`🟡 v0.1.0 脚手架已 init，远端仓待建` → `🔵 v0.1.0 M0–M6 代码与打包完成、本机已装待真机验收，远端仓未建（未授权推送）`
+- 第 199 行 W5 表：补 G1/G2/G3 已过、10 一级 / 34 二级原型 + 46 表 SQLite + customFrame 外壳；「需覆盖鼻咽癌」→「已覆盖鼻咽癌独立路径（33 二级）」
+
+**未 push**：该仓 `main` 领先 `origin/main` 两个 commit（`ed69f11` 认领 + `a6ef38f` 回填），推送需授权。
+
+## M9 教训回流（已完成）
+
+两条教训回流成脚手架 **1.5.1** 的可执行闸门（starter commit `7d5bbdd`）：
+
+1. **规则⑨（`scripts/check-workbench-package.mjs`）**：运行期按**拼出来的路径**读目录（迁移 SQL、模板、标准原文 PDF）也必须随包发出。只扫会随包发出的文件，从 `join()`/`resolve()` 字面量推目录，按「文件所在目录」「包根」两种基准试。实测在本项目报出 `schema/migrations  ← read at runtime by dsh/store.js`——正是原先的盲区。
+2. **`templates/test-pack-contents.test.mjs`**：以 `npm pack --dry-run --json` 的真实清单为对象断言，**自适应**跳过项目还没有的目录；生成项目自带 `test` 脚本，`release:check` 串上 `test`。
+3. **LESSONS 第 9 类**：「有闸门 ≠ 这类问题有闸门」——判断覆盖率要看**机制**不要看**症状**（import 型能静态查，运行时拼路径型不能）。
+
+验证：starter `npm test` **37/37**；新生成项目 `npm run check` 退出 0、`npm test` **4/4**；`check-starter` 152 文件 pass。
+
 ## 下一步具体动作
 
 1. **用户完整退出并重开 DSH Desktop**，验收左侧工作台入口、顶栏 AI 按钮、右侧会话拖拽、业务页读写是否真的可用。
-2. 真机通过后 M5/M6 由 🔵 转 ✅，进 M7 发布（需用户授权推送与市场投稿）。
-3. 未授权项：远端推送、公开发布、市场投稿、tag。
+2. 真机通过后 M5/M6 由 🔵 转 ✅。
+3. **M7 需要显式授权**：建远端仓、push、打 tag、GitHub Release、市场投稿——对外可见且不可撤回，不自行决定。
+4. BACKLOG 两个本地 commit 是否推送，也一并等授权。
 
 ## 用户已确认的偏好与授权
 
