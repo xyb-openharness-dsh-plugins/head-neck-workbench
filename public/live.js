@@ -73,6 +73,11 @@
     var stageRow = rows('staging_assertions')[0];
     var pathRow = rows('pathology_reports')[0];
     var surgRow = rows('surgery_events')[0];
+    // 颈清扫是 surgery_events 的子表（children），不是 subjects 的列。
+    // 早先这里硬编码 neck: null，导致「手术与切除范围」页签读 g.neck.side 直接抛异常。
+    var neckRow = (ch.neck_dissections || []).filter(function (r) {
+      return !surgRow || r.surgery_id === surgRow.id;
+    })[0];
     var rtRow = rows('radiotherapy_courses')[0];
     var airwayRow = rows('airway_status')[0];
     var stomaRow = rows('tracheostoma_facts')[0];
@@ -197,7 +202,15 @@
             larynxPreserved: bool(surgRow.larynx_preserved),
             voiceLost: bool(surgRow.voice_lost),
             permanentStoma: bool(surgRow.permanent_stoma),
-            neck: null,
+            neck: neckRow
+              ? {
+                  side: dash(neckRow.side),
+                  levels: dash(neckRow.levels),
+                  spinalAccessory: neckRow.spinal_accessory_preserved === 1
+                    ? '保留'
+                    : neckRow.spinal_accessory_preserved === 0 ? '未保留' : '未记录',
+                }
+              : null,
             recon: surgRow.note || '—',
           }
         : null,

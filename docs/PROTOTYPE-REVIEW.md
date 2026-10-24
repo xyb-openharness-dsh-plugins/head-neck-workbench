@@ -8,7 +8,7 @@
 | --- | --- |
 | 实际路径 | `prototypes/v0.1/index.html` |
 | 版本 | v0.1（单文件自包含，无外部依赖、无网络请求） |
-| SHA-256 | `75deabb76e41d05d4f364c056e40ef4d22d05e66d17e5ffb81ce2895479c124d` |
+| SHA-256 | `e00f74c9f7d635082f9b8d9996b3f675bb8c76416d042568ceb9ab544133bfaf` |
 | 行数 | 1347 |
 | 当前 SPEC / 场景 / 数据模型版本 | `docs/SPEC.md` v0.1 草案 · `docs/SCENARIOS.md`（10 一级 / 34 二级 / 14 场景）· `docs/SCHEMA.md` + `schema/draft/0001_initial.sql`（46 表草案） |
 | 预览方式 | 浏览器直接打开该文件；或 `python3 scripts/verify_prototype.py`（真实 Chrome，22 项断言） |
@@ -73,3 +73,27 @@
 | 设计口径（**不构成 G2 签认**） | S09 / S12 / S14 三条路径「回首页无变化」 | `docs/SCENARIO-PATHS.md` §2 回流清单 | 用户 2026-10-25 原话「确认，继续」（m05820） | 其余 14 条路径、34 个二级页签仍未逐条确认 | 仅确认这三条**保持无变化**，不授权开发任何生产业务 |
 
 > 只确认对应版本/模块；新增或重大交互变更需重新展示。确认不等于服务接通、数据库冻结或业务验收通过。见 `docs/14-HTML-AND-DATA-CONTRACT.md`。
+
+## G2 后缺陷修复（2026-10-25，装机产物验收发现）
+
+**症状**：在**装机产物**上逐个点开 34 个二级页签时，「治疗 → 手术与切除范围」抛出
+`Cannot read properties of null (reading 'side')`，整页渲染中断。原型单文件打开时不复现，
+因为 DEMO 常量里 `surgery.neck` 有值；只有接了数据库才暴露。
+
+**两个根因（都修了）**：
+1. `public/live.js` 把 `neck` **硬编码成 `null`**，从没读过 `children.neck_dissections`
+   ——而 `schema/draft/0001_initial.sql:149` 里这张表是有的（`side` / `levels` /
+   `spinal_accessory_preserved`）。适配层漏了一张子表。
+2. `prototypes/v0.1/index.html` 直接写 `g.neck.side`，**没有空值保护**。患者没做过颈清扫
+   （鼻咽癌路径通常不做）或没记进来时，这一页就应该是「还没有颈清扫记录」，不是崩。
+
+**修法**：live.js 从 `children.neck_dissections` 按 `surgery_id` 取行并映射
+（`spinal_accessory_preserved` 1/0/null → 保留/未保留/未记录）；原型改为
+`g.neck ? card(...) : card('颈清扫', [['记录','本档案还没有颈清扫记录']], '没有记录不等于没做…')`。
+
+**验证**：装机产物上 34/34 页签可打开、0 未捕获异常、0 console error、0 失败请求；
+「手术与切除范围」页签渲染出数据库真值（侧别 双侧 / 清扫区 II–IV / 副神经 未保留），
+未走兜底分支。新增 `scripts/verify-tabs-on-artifact.py` 把这条锁住。
+
+**原型 hash 因此变更**：`75deabb7…` → `e00f74c9…`。这次改动不改变任何既有视觉，
+只补「无颈清扫记录」时的空态分支；G2 确认的布局/信息架构未变。

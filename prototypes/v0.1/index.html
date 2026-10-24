@@ -939,11 +939,12 @@ PAGES.tx = {
       ['永久气管造口', g.permanentStoma? '<b>是</b>' : '否'],
       ['重建', esc(g.recon||'—')]
     ]))}
-    ${card('颈清扫', kv([
+    ${g.neck ? card('颈清扫', kv([
       ['侧别', esc(g.neck.side)],
       ['清扫区', esc(g.neck.levels)],
       ['副神经', esc(g.neck.spinalAccessory)]
-    ]), '副神经是否保留直接关系到「能不能抬手梳头」，必须单独记')}
+    ]), '副神经是否保留直接关系到「能不能抬手梳头」，必须单独记')
+    : card('颈清扫', kv([['记录', '本档案还没有颈清扫记录']]), '没有记录不等于没做——鼻咽癌路径通常不做颈清扫，别处做过的也可能没记进来')}
     ${notice(`全喉切除改变的是<b>两件不可逆的事</b>：不能再经口鼻呼吸（永久造口）、原有发声方式不再可用。本工作台不评价这个选择，只保证这两件事在后续每一页都被当作前提。`,'warn')}
     ${card('术后能做什么（自评，不是评定）', s.functions.length? tbl(['方面','具体动作','现在能不能做到'],[
       s.functions.map(f=>[esc(f.domain), esc(f.activity), esc(f.ability)])
