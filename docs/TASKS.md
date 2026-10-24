@@ -66,6 +66,10 @@
 
 验证：starter `npm test` **37/37**；新生成项目 `npm run check` 退出 0、`npm test` **4/4**；`check-starter` 152 文件 pass。
 
+**规则⑨ 自身经过三轮收敛**（starter commit `cc14d9d`），每轮都对应一类真实代码形态：①写调用（`mkdir`/`writeFile`）的目标目录不需要随包发出（attr 的 `prototypes/v0.2` 误报 5 条）；②「在 files 白名单里」≠「运行期会执行」，构建脚本随包发但读 `prototypes/` 是构建期行为，必须只看从 `main`/`exports` 出发的 import 闭包；③同文件同名变量（`writeJs` 与 `applyMigrations` 各有一个 `const dir`），必须就近取该 read 调用之前最后一个声明。
+
+**双向验证**（只验一个方向等于没验）：真缺陷上必响——本项目抽掉 `schema/migrations` 后规则⑨ 报出 `schema/migrations ← read at runtime by dsh/store.js`；全家族 **27 个 `*-workbench` 仓 0 命中**，无误报。
+
 ## 下一步具体动作
 
 1. **用户完整退出并重开 DSH Desktop**，验收左侧工作台入口、顶栏 AI 按钮、右侧会话拖拽、业务页读写是否真的可用。
