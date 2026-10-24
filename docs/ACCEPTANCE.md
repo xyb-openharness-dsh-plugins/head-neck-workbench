@@ -56,7 +56,7 @@ Agent 是否运行在目标 Desktop 内：**是**——所以本 Agent 不自行
 | --- | --- | --- | --- |
 | ACC-24 | 记录本机安装 / Git 推送 / GitHub Release / 市场PR分别完成到哪一步；未授权项为不适用 | 本机安装：**已完成**（profile 已登记）；Git 推送：**未授权**；GitHub Release：**未授权**；市场 PR：**未授权** | 部分完成 |
 | ACC-25 | 市场安装来源与条目一致；Release只有在YAML显式tarball时才是所选来源，否则按目录协议使用源码或npm | 手工/native 安装，无市场条目（`check-install.mjs` 已提示「市场里可能不显示已安装」） | 不适用 |
-| ACC-26 | 包版本、客户端版本、实际安装副本、tar hash一致；Desktop运行界面加载单独确认 | 包版本 0.1.0 = 客户端 `VERSION` = 装机副本 `package.json`；tar hash `5207dd1e…`；**界面加载未验证**（待重启） | 部分通过 |
+| ACC-26 | 包版本、客户端版本、实际安装副本、tar hash一致；Desktop运行界面加载单独确认 | 包版本 0.1.0 = 客户端 `VERSION` = 装机副本 `package.json`；tar hash `5207dd1e…`；**装机副本与 release tgz 逐文件 `diff -r` 0 差异**；装机副本本体跑 `probe:restart` **PASS**（46 表 → 种子 → 写入 → 重开仍在）；`cordis.patch.yml` 有 `root: !!js dshHomePath('head-neck-workbench')`（真持久目录，非内存库）；profile `package.json` 既在 dependencies（`file:…/release/*.tgz`）又在 `dsh.profile.bundles`；**界面加载仍未验证**（需重启 Desktop；`/api/*` 有全局鉴权，401 无法判断插件是否加载） | `diff -r` + `npm run probe:restart "<装机目录>"` | 部分通过（仅界面加载待验） |
 | ACC-27 | 真实市场PR URL、最新检查、合并状态、目录可见和市场可安装分别记录；不得把PR提交称为已上架 | **不适用**：未投稿 | 不适用 |
 
 ## DSH 原生 Agent 对话
