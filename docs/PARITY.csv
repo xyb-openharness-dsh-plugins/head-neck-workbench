@@ -1,2 +1,22 @@
 id,原型版本与定位,原型内容或行为,当前实现,差异,偏离原因及依据,替代方案,组件与API,验收证据,状态
-EXAMPLE-ID,文件hash/Tab/模块,最近值→翻转→最近五次折线,待评估,待评估,无依据时视为实现缺口,待定,待定,未验证,待核对
+P-00,全站,`prototypes/v0.1/index.html` 整页（G2 确认版 SHA-256 `75deabb7…`）,`public/index.html` 为**生成物**：原型字节 + 末尾一行 `<script src="live.js"></script>`,0 差异（生成规则只有一条，其余字节不动）,原型是 G2 签认的视觉合同，手抄两份 86KB HTML 必然漂移,`scripts/build-public.mjs` 生成 + `--check` 进 `npm run check` 卡住漂移,`dsh/server.js` serveStatic（`/ui/*`）,"`node scripts/build-public.mjs --check` → 同步（68984 字符，仅多 live.js 一行）",已核对
+P-01,看板/今天要知道的,今日聚焦卡 + 四条轨道摘要 + 急症入口,同原型，数据来自 `subjects`+`observations` 映射,0 布局差异；数据源由 `DEMO` 换成 `/api/head-neck-workbench/bootstrap`,"`live.js` 用 `toUiModel()` 全量映射后调原型自己的 `render()`，原型不知道数据来自哪",无,`GET /bootstrap?subject=`,`verify-live.py` 判据 2「档案名来自数据库」通过,已核对
+P-02,看板/四条轨道,A 肿瘤学 / B 气道发声 / C 吞咽营养 / D 放疗晚期毒性，明写「永远不相加」,同原型,0,同上,无,`dsh/store.js` 读模型,"`verify_prototype.py`「四条轨道页写明永远不相加」PASS",已核对
+P-03,我的病/分期与病理,原发部位/HPV/p16/CPS/切缘/神经脉管侵犯,同原型；`pathology_reports` 表带 CHECK 约束（`muscle_present`、`margin_status`、`grade_system`）,0 视觉差异；写库时非法值被 CHECK 拒绝,"医学口径不能靠界面自觉，`schema/migrations/0001_initial.sql` 用 CHECK 写死","`check-schema-draft.mjs` 负向探针（故意写非法值期望被拒）","`entities` POST → `pathology_reports`","`check-schema-draft.mjs` 24/24（含 CHECK 拒绝探针）",已核对
+P-04,我的病/病理报告原文,报告原文摘录 + 来源标注,同原型,0,同上,无,`source_refs` 表,原型静态 + `verify_prototype.py` 全页无 undefined/NaN,已核对
+P-05,治疗与手术/手术与切除范围,术式/入路/喉是否保留/永久造口/颈清扫/重建,同原型,0,同上,无,`surgeries` 表（CHECK `procedure`）,同上,已核对
+P-06,治疗与手术/放疗,技术/起止/剂量/分次/照射野,同原型,0,同上,无,`radiotherapy`+`radiotherapy_sites`,同上,已核对
+P-07,气道与造口/造口日常,湿度/清洁/洗澡注意,同原型,0,同上,无,`stoma_care` 表,同上,已核对
+P-08,气道与造口/耗材与库存,耗材清单 + 补货阈值,同原型,0,同上,无,`supplies` 表,同上,已核对
+P-09,气道与造口/堵管与脱管,急救卡（「我做过全喉切除，永久气管造口，不能经口鼻呼吸」）,同原型,0,同上,无,静态页（打印样式 `@media print`）,"`verify_prototype.py`「急救卡含不能经口鼻呼吸」PASS",已核对
+P-10,声音与沟通/发声方式与发音管,发音管置入/规格/取出原因（CHECK：漏气/感染/移位/定期更换/其他/未记录）,同原型,0,同上,无,`voice_prostheses`（CHECK `removal_reason`）,同上,已核对
+P-11,吞咽与营养/进食方式,口进/胃管/PEG/肠外/混合/未记录（CHECK 写死）,同原型,0,同上,无,`feeding`（CHECK `route`）,同上,已核对
+P-12,长期与复诊/放疗后十年,晚期毒性按 CTCAE v5.0 分级对照（只对照不诊断）,同原型；`late_toxicity` 表 `grade_system IN ('CTCAE v5.0','WHO','RTOG','未分级')`,0,同上,标准原文随包分发 `assets/reference/ctcae/CTCAE_v5.0_Quick_Reference_5x7.pdf`,静态页 + 资产,同上,已核对
+P-13,长期与复诊/关切清单,新增/「问过了」/「已解决」/私密开关,同原型交互；改动落库（`concerns` 表）,0 交互差异；刷新后不丢（原型只改内存）,"写操作不新增界面：`live.js` 捕获阶段监听 + `setTimeout(0)` 取最终状态后 diff 写回","`POST/PATCH/DELETE /entities/concerns`","`verify-live.py` 判据 4「点一次写回磁盘」：`c-test-1` 1→0 经 sqlite3 直查确认",已核对
+P-14,指标分析/指标卡片,8 张卡（含 `cr`/`tsh`/`mouth`/`anc` 四项本癌种指标），翻面 3D 趋势，固定高度 276,同原型,0,"`mouth`（张口度 mm）是放疗后张口受限的唯一功能量，通用指标集里没有","`observations` + `metrics` 目录共用","`verify_prototype.py`「指标卡固定高度 276」「aria-pressed 翻转」PASS",已核对
+P-15,指标分析/一图秀,多指标时间轴 + 治疗事件 lane，末点标签不越界（C6）,同原型,0,同上,无,`charts.js` 内 `CHART.render()`,"`measure-one-chart.py` C1–C12 实测（C6 越界 0）",已核对
+P-16,资料与导出/导出给医生,Markdown 摘要导出（私密项默认不导出）,`GET /export?format=md|json` 服务端生成中文 Markdown,0 原型是按钮占位，现在是真实文件,"导出必须得到格式真实的文件，不能只弹 toast","`exportMarkdown()` 只抄记录、标注演示数据、说明私密项默认不导出","`GET /export?format=md`","装机副本探针 `/health` `/ui/` `/ui/live.js` `/bootstrap` 全 200",已核对
+P-17,全站/隐私边界,私密页声明「不进摘要与导出」,同原型 + `viewpoints.is_private DEFAULT 1`（fail-closed）,0,"默认私密比默认公开安全：漏标是隐私事故，多标只是少导一条","`viewpoints` CHECK `visibility IN ('shared','private')`","`verify_prototype.py`「私密页声明不进摘要与导出」PASS",已核对
+P-18,全站/窄屏,390 宽无横向溢出，图表横向滚动只在容器内,同原型,0,同上,无,`shell.css` 网格 `minmax(0,1fr)`,"`verify-live.py` 判据 5「390 宽无横向溢出」overflow=0px",已核对
+P-19,外壳（原型无此层）,—,`lib/client.js` customFrame：三段式顶栏 + 业务 iframe + 右侧原生会话 + 可拖 25%–45% + 窄屏抽屉 + 8 秒兜底重试,新增层（原型没有外壳）,装进 Desktop 后必须有顶栏入口与可拖会话区，标准分栏做不到,"`prompts/DSH-WORKBENCH-TOP-BAR.md` + `DSH-AGENT-PANE-INTEGRATION.md`","`desktopWorkbenches.register({customFrame:true})`","`check-client-constants.mjs` 全一致；conformance 31/33（0 失败）",**待真机验收**（需重启 Desktop）
+P-20,写操作（原型只改内存）,点「问过了」只改内存、刷新即丢,`public/live.js` 捕获阶段监听 → diff → POST/PATCH/DELETE → 失败 toast + 回拉数据库真相,新增能力（原型无持久化）,原型是 G2 视觉合同不能改，所以持久化放在叠加层,"`TABLE_OF={concerns,viewpoints,tasks}` + `toRow()` + `takeSnapshot()` + `flush()`","`/entities/:table[/:id]`","`verify-live.py` 8/8（含写回磁盘、0 未捕获异常、0 console error）",已核对

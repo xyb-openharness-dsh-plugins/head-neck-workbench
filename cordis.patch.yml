@@ -1,3 +1,5 @@
 - insert:
     - id: head-neck-workbench-main
       name: "@xyb-community/head-neck-workbench"
+      config:
+        root: !!js dshHomePath('head-neck-workbench')

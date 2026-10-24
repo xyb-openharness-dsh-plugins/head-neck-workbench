@@ -223,3 +223,14 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 - **对策三步（已做成脚本，不靠记性）**：① 装之前 `rm -rf` 副本目录再 `pnpm install` 强制重链；② **逐文件比对** tgz 条目与副本条目（数量 + 相对路径逐个对），对不上直接退出 1、**不往下跑探针**；③ 副本入口文件与仓库逐字节一致。参考实现 `attr-workbench/scripts/install-local.mjs`（`npm run install:local`），顺带记一条：`npm pack` 同版本重打 shasum 每次都变（时间戳参与归档），**shasum 不能当版本号用**。
 - **元教训**："改了没生效"的排查顺序应该是 **副本内容 → 包内容 → 源码**，不是从源码往回猜。凡是"我明明修了"的句子出现，先确认验的对象是不是刚打的那个包。
 - **这条静态查不出来**（要查得真装一次），所以它只能进流程文档 + 一段可执行脚本，不能进检查器——**不是所有教训都能长成闸门，承认这一点比硬塞一条误报规则好**。
+
+2026-10-25 头颈癌 M6 · **装了能开、进去是空库**：`package.json` 的 `files` 白名单里没有 `public/` 和 `schema/migrations/`。tgz 打出来 24 个文件，`npm pack --dry-run` 的清单里干干净净——就是没有那两样。
+
+- **两个故障，两种症状，都不报错**：
+  1. 缺 `public/` → iframe 请求 `/api/<slug>/ui/` 得到 404/兜底，业务区空白。这个还算显眼。
+  2. 缺 `schema/migrations/` → `dsh/store.js` 的 `readdirSync(MIGRATIONS_DIR)` 读不到 `.sql`，**一张表都不建**，但服务照常启动、`/health` 照常 200、界面照常打开，只是所有列表空着。看起来像「还没有数据」，实际是「没有表」。**静默空库比白屏难查十倍。**
+- **为什么静态检查抓不到第 2 个**：`MIGRATIONS_DIR = join(HERE, '..', 'schema', 'migrations')` 是**运行时拼出来的路径**，不是 `import`。`check-workbench-package` 的规则⑥只管 import 落点，规则⑦只管 `public/`。所以第 2 个缺口在整套检查器里是**盲区**——上一轮 ATTR 的「踩 5」是 import，能被⑥抓住，于是很容易误以为"这类问题已经有闸门了"。
+- **元教训**：**"有闸门"不等于"这类问题有闸门"。** 同一个大类（files 白名单漏文件）里，import 型和运行时拼路径型是两种机制，前者能静态查、后者不能。判断闸门覆盖率要看**机制**，不要看**症状**。
+- **落地**：新增 `test/pack-contents.test.mjs`（4 条，用 `npm pack --dry-run --json` 拿真实清单）——断言 tgz 必须有 `public/index.html`、`public/live.js`、`schema/migrations/*.sql`（且含 `0001_`）、`cordis.patch.yml` 且 patch 声明 `config.root`。这是本项目第一条**以打包产物为对象**的测试，不落盘、不留临时 tgz。
+- **顺带发现的第二个真 bug**：`cordis.patch.yml` 没写 `config.root`，而 `dsh/index.js` 的 `Config` 声明了 `root`。后果是**装机能开、每次重启回内存库**——用户记了一天的东西，重启就没了，而且没有任何提示。这个被 `check-workbench-package` 规则⑤ 当场点名（`staticPass: false`），属于有闸门且真响了的正例。
+- **可复用的做法**：凡是"运行期按路径读文件"的模块（迁移、模板、静态资源、标准原文 PDF），都该在**打包后**验一次，而不是在源码树里验。源码树里那些目录永远在，所以本地跑得通**完全不能说明**装进去跑得通。
