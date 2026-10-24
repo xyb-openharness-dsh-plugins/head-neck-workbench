@@ -22,6 +22,10 @@ from playwright.sync_api import sync_playwright
 
 EMPTY_MARK = "本页签尚未实现"
 
+# 映射漏字段的典型症状。它们出现在界面上就说明「渲染成功但内容是错的」，
+# 比整页崩溃更危险——崩溃至少会被发现，垃圾值会被当成真数据读走。
+GARBAGE_MARKS = ("undefined", "NaN", "[object Object]", "null")
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -63,6 +67,7 @@ def main():
 
         total_tabs = 0
         empty_tabs = []
+        garbage_tabs = []
         visited = []
         for nav in navs:
             page.click(f'a[data-page="{nav}"]')
@@ -78,11 +83,18 @@ def main():
                 total_tabs += 1
                 if EMPTY_MARK in body or len(body.strip()) < 30:
                     empty_tabs.append(f"{nav}/{tab}（{len(body.strip())} 字）")
+                hits = [g for g in GARBAGE_MARKS if g in body]
+                if hits:
+                    garbage_tabs.append(f"{nav}/{tab} → {hits}")
 
         print(f"二级页签：{total_tabs} 个（访问 {len(visited)} 次）")
         if empty_tabs:
             print("落到空态/内容过短的页签：")
             for t in empty_tabs:
+                print(f"  ✗ {t}")
+        if garbage_tabs:
+            print("渲染出垃圾值（undefined/NaN/null/[object Object]）的页签：")
+            for t in garbage_tabs:
                 print(f"  ✗ {t}")
 
         # 窄屏不横向溢出
@@ -109,6 +121,7 @@ def main():
     chk(len(navs) == 10, f"一级导航 10 个（实测 {len(navs)}）")
     chk(total_tabs == 34, f"二级页签 34 个（实测 {total_tabs}）")
     chk(not empty_tabs, f"无空态页签（{len(empty_tabs)} 个）")
+    chk(not garbage_tabs, f"无垃圾值页签（{len(garbage_tabs)} 个）")
     chk(overflow["doc"] <= overflow["win"], "390 宽不横向溢出", f"{overflow}")
 
     print()
