@@ -10,7 +10,7 @@
 | --- | --- | --- | --- |
 | M0 | 骨架：脚手架 init、目录与文件体系 | **完成** | 137 文件；`dsh-wb-cli check` staticPass |
 | M1 | 调研 + 场景 + SPEC | **基本完成** | `docs/RESEARCH-2026-10-25.md`（含 12 条事实与来源等级）、`docs/SCENARIOS.md`（10/34/14，五项裁决已落）、`docs/SPEC.md`（草案，未签认） |
-| M2 | HTML 原型 | **完成，待确认** | `prototypes/v0.1/index.html`；22/22 自检；12 张截图 |
+| M2 | HTML 原型 | **完成，待确认** | `prototypes/v0.1/index.html`；24/24 自检；12 张截图 |
 | M3 | 数据模型 | **完成草案** | `schema/draft/0001_initial.sql`（46 表 / 63 索引）；24/24 约束探针；`docs/SCHEMA.md` |
 | M4 | 临床库（本癌种 2026 试验数据） | **不适用（待用户改口径）** | 场景 L10 裁决「不上临床试验入口」；若改口径需重开本里程碑 |
 | M5 | 开发版（生产业务实现） | **未开始** | 前置：G1 HVT 签认 + G2 HTML 确认 + G3 schema 冻结 |
@@ -39,7 +39,7 @@
 
 ## 当前失败/复现
 
-无。三套自检全绿：`verify_prototype.py` 22/22、`check_schema_draft.py` 24/24（若存在 node 版见 `scripts/`）。
+无。三套自检全绿：`verify_prototype.py` 24/24、`check_schema_draft.py` 24/24（若存在 node 版见 `scripts/`）。
 
 ## 未验证项
 

@@ -54,7 +54,7 @@
 ## HTML 原型关口
 
 路径/版本/hash：`prototypes/v0.1/index.html` · v0.1 · `75deabb76e41d05d4f364c056e40ef4d22d05e66d17e5ffb81ce2895479c124d`
-实际预览证据：`scripts/verify_prototype.py` 22/22（真实 Chrome，1440 与 390 两档）+ `_shots/` 12 张截图
+实际预览证据：`scripts/verify_prototype.py` 24/24（真实 Chrome，1440 与 390 两档）+ `_shots/` 12 张截图
 用户确认范围/原话/日期：**未确认**（见 `docs/PROTOTYPE-REVIEW.md` §8）
 
 ## 数据演进关口
