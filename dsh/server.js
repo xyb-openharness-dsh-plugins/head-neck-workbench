@@ -95,10 +95,22 @@ function exportMarkdown(store, subjectId) {
   const s = m.subject
   const t = m.tables
   const line = (v) => (v == null || v === '' ? '未记录' : String(v))
+  // 时间戳按本机时区写成「日期 时:分」。直接 String() 会漏出 2026-10-24T10:00:00.000Z
+  // 这种裸 ISO，而同一张表里的 due_on 是 2026-11-20 —— 一份给医生看的摘要里
+  // 两种日期格式并存，读的人要先在心里做一次解析。
+  const stamp = (v) => {
+    if (v == null || v === '') return '未记录'
+    const str = String(v)
+    if (!str.includes('T')) return str
+    const d = new Date(str)
+    if (Number.isNaN(d.getTime())) return str
+    const p2 = (n) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`
+  }
   const rows = (list, cols) =>
     list.length
       ? ['| ' + cols.map((c) => c[1]).join(' | ') + ' |', '| ' + cols.map(() => '---').join(' | ') + ' |']
-          .concat(list.map((r) => '| ' + cols.map((c) => line(r[c[0]])).join(' | ') + ' |'))
+          .concat(list.map((r) => '| ' + cols.map((c) => (c[2] || line)(r[c[0]])).join(' | ') + ' |'))
           .join('\n')
       : '未记录'
 
@@ -167,7 +179,7 @@ function exportMarkdown(store, subjectId) {
   parts.push(rows(t.stoma_logs, [['logged_on', '日期'], ['event', '事件'], ['severity', '程度'], ['note', '备注']]))
   parts.push('')
   parts.push('气道急症：')
-  parts.push(rows(t.airway_emergencies, [['occurred_at', '时间'], ['kind', '类型'], ['outcome', '结果'], ['went_to', '处理']]))
+  parts.push(rows(t.airway_emergencies, [['occurred_at', '时间', stamp], ['kind', '类型'], ['outcome', '结果'], ['went_to', '处理']]))
   parts.push('')
 
   parts.push('## 声音与沟通')
@@ -216,7 +228,7 @@ function exportMarkdown(store, subjectId) {
   parts.push(rows(t.followup_schedules, [['item', '项目'], ['interval_text', '间隔原文'], ['next_due_on', '下次']]))
   parts.push('')
   parts.push('## 任务')
-  parts.push(rows(t.tasks, [['title', '事项'], ['due_on', '截止'], ['done_at', '完成']]))
+  parts.push(rows(t.tasks, [['title', '事项'], ['due_on', '截止'], ['done_at', '完成', stamp]]))
   parts.push('')
   parts.push('---')
   parts.push('说明：本文件只包含「共享」可见性的内容；标记为私密的记录默认不导出。')

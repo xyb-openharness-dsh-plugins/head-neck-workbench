@@ -124,3 +124,15 @@ test('UI 静态资源可取，/ui 无尾斜杠重定向', async () => {
     assert.equal(redirect.status, 302);
   });
 });
+
+test('导出 Markdown 里的完成时间不是裸 ISO 时间戳', async () => {
+  await withServer(async ({ base }) => {
+    const res = await fetch(`${base}/export?format=md`)
+    assert.equal(res.status, 200)
+    const text = await res.text()
+    assert.match(text, /## 任务/, '导出里应有任务段')
+    // 裸 ISO（2026-10-24T10:00:00.000Z）会让读者先解析一遍；同表的 due_on 是 2026-11-20
+    assert.doesNotMatch(text, /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, '不应出现裸 ISO 时间戳')
+    assert.match(text, /\d{4}-\d{2}-\d{2} \d{2}:\d{2}/, '完成时间应写成「日期 时:分」')
+  })
+})
