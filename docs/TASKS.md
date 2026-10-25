@@ -10,14 +10,14 @@
 | --- | --- | --- | --- |
 | M0 | 骨架：脚手架 init、目录与文件体系 | **完成** | `dsh-wb-cli 1.5.0` init 生成 150 文件；`dsh-wb-cli check .` → `staticPass: true` |
 | M1 | 调研 + 场景 + SPEC | **完成** | `docs/RESEARCH-2026-10-25.md`（8 条证据 A/B 分级 + 12 维度 + 4 轨道）、`docs/SCENARIOS.md`（10/34/14）、`docs/SOURCES.md`（M01–M08） |
-| M2 | HTML 原型 | **完成（G2 已确认）** | `prototypes/v0.1/index.html`（SHA-256 `0c1c8aca…`）；`verify_prototype.py` 24/24；`_shots/` 12 张截图 |
-| M3 | 数据模型 | **完成（G3 已冻结）** | `schema/migrations/0001_initial.sql`（46 表 / 63 索引 / 35 表带 CHECK）；`check-schema-draft.mjs` 24/24 |
+| M2 | HTML 原型 | **完成（G2 已确认）** | `prototypes/v0.1/index.html`（当前 SHA-256 `3f3472fd…`，G2 确认时为 `75deabb7…`，此后仅修颈清扫空值崩溃 + 版本 chip）；`verify_prototype.py` **25/25**；`_shots/` 12 张 + `docs/screenshots/` 12 张（市场用，1440×900） |
+| M3 | 数据模型 | **完成（G3 已冻结）** | `schema/migrations/0001_initial.sql`：**46 表 / 63 索引 / 35 表带 CHECK**；`check-schema-draft.mjs` 全过 |
 | M4 | 临床库（本癌种 2026 试验数据） | **不适用** | 场景 L10 裁决「不上临床试验入口」；`web_search` 把 head-and-neck 解析成运动品牌 HEAD，无可信通道 |
-| M5 | 开发版（生产业务实现） | **代码完成，待真机验收** | `lib/client.js` customFrame 外壳、`dsh/store.js`（46 表迁移+种子）、`dsh/server.js`（7 组路由）、`public/live.js` 读写闭环；`verify-live.py` 8/8；`npm run check` 全绿 |
-| M6 | 装机（实际包/Profile/版本核验） | **已装待验收** | `release/…0.1.0.tgz`（SHA-256 `b610a578…`）；已入 Desktop profile 的 `dsh.profile.bundles`；`check-install.mjs` ✓；装机副本与 tgz `diff -r` 0 差异；`probe:restart` PASS（46 表/种子/写入/重开仍在）；`probe:routes` PASS（7 组路由，含 export 两格式、UI 302、422+field 映射）；**`verify-tabs-on-artifact.py` PASS**——对装机副本本体用真 Chrome 逐个点开 10 一级 / 34 二级，0 异常/0 console error/0 失败请求/无空态/390 宽不溢出 |
-| M7 | 发布（tag/包 hash/市场） | **已发布，市场投稿未做** | 远端仓 `xyb-openharness-dsh-plugins/head-neck-workbench`（private，默认 `main`）；tag `v0.1.0`；Release `v0.1.0` 附 tgz（3,534,460 字节）；`CHANGELOG.md` 按实际内容重写；**市场投稿未做**（对外投稿，等用户点头） |
-| M8 | 状态回填（组织 BACKLOG） | **完成并已推送** | `~/Downloads/.github` `097dbc0`；第 73 行主表 + 第 199 行 W5 表；顺带把「当前已启动」改为实查口径（远端 24 + 仅本地 3） |
-| M9 | 教训回流（脚手架可执行闸门） | **完成（脚手架 1.5.2）** | `serve-artifact.mjs` + `verify-tabs-on-artifact.py` + `pack-contents.test.mjs` 随 init 下发；manifest `probe:artifact`/`probe:tabs`；`check-starter` 必备清单加三件；LESSONS 11/12/13；starter `51348a8`，`npm test` 37/37，新项目 154 文件、`npm test` 4/4 |
+| M5 | 开发版（生产业务实现） | **代码完成，待真机验收** | `lib/client.js` customFrame 外壳、`dsh/store.js`（46 表迁移+种子）、`dsh/server.js`（7 组路由 + 约束失败映射 422/field）、`public/live.js` 读写闭环；`verify-live.py` 8/8；`npm run check` 全绿（**18 条测试**） |
+| M6 | 装机（实际包/Profile/版本核验） | **已装待重启验收** | 当前装的是 **0.1.5**（`release/xyb-community-head-neck-workbench-0.1.5.tgz`，3,013,558 字节，24 文件，SHA-256 `729099bb…`，Release 资产大小已回读一致）；`dsh.profile.bundles` 34 项含本包；装机副本与 tgz `diff -r` **0 差异**；`probe:restart` PASS；`probe:routes` PASS（7 组路由）；`verify-tabs-on-artifact.py` PASS（34 页签 0 异常）；`audit-tab-diversity.py` PASS（正文最高 0.227 / 结构最高 0.214 / 空页签 0）；**`smoke-activate.mjs` PASS**（真跑 `apply()`，描述符通过宿主 7 条校验；反向对照 0.72 退出码 1） |
+| M7 | 发布（tag/包 hash/市场） | **已发布到 0.1.5；市场投稿被仓库私有卡住** | tag `v0.1.0`…`v0.1.5` 全部推送，每个 tag 附 Release 与 tgz；`CHANGELOG.md` 逐版记录。**市场投稿材料已备齐**：`market/samqin123__head-neck-workbench.yml` + 12 张 0.1.5/0.1.4 产物截图（1440×900）+ 包合规自检（2.87MiB < 8MiB、无个人绝对路径、无密钥）。**阻塞**：仓库 private → Release 资产匿名下载 404、raw 截图取不到，条目合进去也装不上；转公开不可逆，需用户授权（详见 `docs/MARKET-SUBMISSION.md`） |
+| M8 | 状态回填（组织 BACKLOG） | **完成并已推送** | `~/Downloads/.github` 提交 `c2c9210`（rebase 到 `origin/main` 后推送）：第 73 行主表 + 第 203 行 W5 表更新到 v0.1.5，写入差异度审计与激活烟测证据、市场投稿待授权 |
+| M9 | 教训回流（脚手架可执行闸门） | **完成（脚手架 1.5.4 / 1.5.5 / 1.5.6）** | ①1.5.4 `check-conformance` 的 businessWidth 上限 0.75→**0.7**（原比宿主还宽）、`init` 对 business-first 也校验、`templates/check-host-contract.mjs` 随 init 下发；②1.5.5 `assets/reference/metric-trends` 移出 `assets/`（否则每个新项目白带 1.1MB 他癌种截图）；③1.5.6 `templates/smoke-activate.mjs` 随 init 下发并接进派生项目 `check`（真跑 `apply()` + 复刻宿主 7 条校验，反向对照 0.72 必失败）。`npm test` **39/39**、`check-starter` **169 文件** pass |
 
 ## 闸口
 
