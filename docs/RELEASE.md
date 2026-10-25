@@ -1,6 +1,6 @@
 # 发布与回滚记录
 
-版本/tag/commit：**0.1.3**（`package.json` / `VERSION` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 四处同源，`check-version.mjs` 通过）／ tag `v0.1.3` ／ Release ／ commit 见本轮提交。历史 `v0.1.0`（`b610a578…`）、`v0.1.1`（`a2f687d6…`）、`v0.1.2`（`4ea88d34…`）的 tag 与 Release 均保留。**0.1.0–0.1.2 装进 Desktop 会激活失败**（businessWidth 0.72 超宿主上限 0.7），0.1.3 已修，勿再安装前三个版本。
+版本/tag/commit：**0.1.3**（`package.json` / `VERSION` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 四处同源，`check-version.mjs` 通过）／ **tag `v0.1.3` 已推送** ／ Release https://github.com/xyb-openharness-dsh-plugins/head-neck-workbench/releases/tag/v0.1.3 （`gh release view` 实测资产 **3,534,997 字节**，与本地一致）／ commit `244b984`（文档提交 `2d53ca0`）。历史 `v0.1.0`（`b610a578…`）、`v0.1.1`（`a2f687d6…`）、`v0.1.2`（`4ea88d34…`）的 tag 与 Release 均保留。**0.1.0–0.1.2 装进 Desktop 会激活失败**（businessWidth 0.72 超宿主上限 0.7），0.1.3 已修，勿再安装前三个版本。
 变更的功能 ID：M5 读写闭环、M6 装机、M7 发布（见 `docs/DEV-PLAN.md` 与 `docs/PARITY.csv` P-00…P-20）
 用户授权范围：**到 M9**（用户原话 m05978「G2确认，继续完成开发到M9」）。据此完成 M7 中**可撤回**的部分（建私有仓、push、tag、Release）；**市场投稿仍未做**——那是对外公开且不可撤回的动作，等用户显式点头。
 
