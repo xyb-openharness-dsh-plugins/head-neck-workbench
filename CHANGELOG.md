@@ -2,6 +2,25 @@
 
 只增不删；每条写清"改了什么 + 为什么 + 用户可见结果"。版本号与 VERSION、package.json 三处必须一致。
 
+## 0.1.5 — 2026-10-25
+
+把「装进去能不能激活」从**推测**变成**实测**（这是 0.1.0–0.1.2 让 Desktop 起不来的那道坎）。
+
+- 新增 `scripts/smoke-activate.mjs`（`npm run smoke:activate`，已接进 `npm run check`）：
+  在 Node 里用桩件喂 `window.__ModuleLoader__` 与 `ctx`，让 `lib/client.js` 的
+  `factory(require)` → `apply()` 真的跑一遍，`register()` 按**宿主原文的 7 条规则**逐条校验。
+  这是对 `check-host-contract.mjs`（只正则比对字面量）的补强：那个只能证明「常量写了什么」，
+  证明不了「`apply()` 走完不抛错、描述符宿主真的收得下」。
+- 反向对照是硬要求：把 `businessWidth` 改回 0.72，烟测立刻退出码 1 并打印
+  `Workbench business width must be between 0.25 and 0.7（实际 0.72）`。
+  正例反例都锁进 `test/activation.test.mjs`（2 条）。
+- 顺手扫了家族里 15 个有 `lib/layout.js` 的工作台：14 个是 0.65、本仓 0.68，
+  **没有第二处越界**——这次崩的是我们一家，不是家族通病。
+
+**验证**：`npm run check` 全绿（含 17 条测试）；装机副本 `diff -r` 0 差异；
+`probe:restart` / `probe:routes` PASS；产物上 34 页签全开；chips 显示 `v0.1.5`。
+**Desktop 界面加载仍需重启确认。**
+
 ## 0.1.4 — 2026-10-25
 
 清理发布包里与本品无关的内容；修正两条自己写错的素材结论。

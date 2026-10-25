@@ -334,3 +334,19 @@ logs 里 `[plugin-recovery] removing` 出现在我执行 remove 之前）。bund
 **另注**：`ctx.effect(fn, 'label')` 这种带第二参数的用法，家族里没有任何一个能正常
 加载的插件用过。为降低未知风险，已改回和膀胱癌/胶质瘤完全一致的 `ctx.effect(fn)`。
 
+## 13. 「常量对」不等于「能激活」：把宿主校验真跑一遍（2026-10-25）
+
+`check-host-contract.mjs` 用正则比对 `BUSINESS_WIDTH = 0.68`，它拦得住写错数字，
+拦不住 `apply()` 里任何一处抛错——而 `web boot: 1 entry did not activate` 这两种都报。
+
+可复用做法：在 Node 里用桩件喂 `window.__ModuleLoader__` 与 `ctx`，让插件**真的走一遍激活**：
+`factory(require)` → `apply(ctx)` → `register(descriptor, Component)`，
+再把宿主的 7 条校验抄进桩件里逐条判。`scripts/smoke-activate.mjs`。
+
+三条要点：
+
+1. **桩件不是宿主，但规则可以是宿主的**。它能证明「描述符合法、apply 不抛、Component 是函数」，
+   不能证明「渲染进程真的加载成功」。证据等级要如实写（本项目标「通过（桩件级）」）。
+2. **反向对照不能省**：把 0.72 放回去必须退出码 1。只签绿灯的烟测等于一个新的错觉来源。
+3. **静态闸门与动态烟测是两层，不是替代**：静态查「写了什么」（能覆盖所有分支、跑得快），
+   动态查「跑起来会不会炸」（能覆盖实际执行路径）。两层都过才敢说「装进去能活」。
