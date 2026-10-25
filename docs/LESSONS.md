@@ -275,3 +275,31 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 
 可复用做法：凡是**只在新数据形态下才走到**的分支（子表、可选术式、未做的检查），
 必须用「数据库真的没有这条」的档案点一遍，光点演示档案永远发现不了。
+
+## 15. `pnpm remove` 会删掉 dsh.profile.bundles 登记，而 `add` 不会补回
+
+**现象**：按「remove 再 add」重装插件后，装机版本对、文件对、`diff -r` 0 差异、
+`check-install` 里 dependencies 也指向新 tgz——**但 `dsh.profile.bundles` 从 34 项掉到 33 项，
+且不含本包**。宿主按 bundles 决定加载哪些插件，所以这个包在盘上却永远不会被加载，
+界面自然也不会出现。表现和「没装」一样，但每一步命令都返回成功。
+
+**为什么**：`remove` 是 pnpm 的正常行为——它把依赖从 profile 的 `package.json` 里摘掉，
+而 `dsh.profile.bundles` 是 DSH 自己写在同一份 package.json 里的字段，pnpm 不认识它，
+一并清理。`add` 只会加 dependencies 和装文件，**不会**知道你还需要一条 bundles 登记。
+
+**修法**（每次重装后必须做，不是只在出错时做）：
+```bash
+python3 - <<PY
+import json
+p="<profile>/package.json"; d=json.load(open(p)); b=d['dsh']['profile']['bundles']
+n='@xyb-community/head-neck-workbench'
+if n not in b:
+    i=max(i for i,x in enumerate(b) if x.startswith('@xyb-community/'))
+    b.insert(i+1,n); json.dump(d,open(p,'w'),ensure_ascii=False,indent=2)
+PY
+node scripts/check-install.mjs   # 必须看到 ✓ 已登记
+```
+
+**元教训**：`check-install` 报 ✓ 是有前提的——它检查的是「dependencies 里有没有」。
+一条检查只覆盖它写出来的那个字段，**不能当作「装好了」的整体结论**。
+重装流程的验收条件应该是三条并列：版本对、文件 `diff -r` 0 差异、**bundles 里有登记**。

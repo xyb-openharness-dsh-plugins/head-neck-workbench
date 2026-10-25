@@ -1,12 +1,12 @@
 # 发布与回滚记录
 
-版本/tag/commit：**0.1.1**（`package.json` / `VERSION` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 四处同源，`check-version.mjs` 通过）／ **tag `v0.1.1` 已打** ／ Release 已建 ／ commit `e44f637`。上一版 0.1.0 的 tag 与 Release 保留（`v0.1.0` 指向 `b588632` 期的包 `b610a578…`）。
+版本/tag/commit：**0.1.2**（`package.json` / `VERSION` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 四处同源，`check-version.mjs` 通过）／ **tag `v0.1.2` 已打** ／ Release 已建 ／ commit `3130bf3`。历史版本 `v0.1.0`（包 `b610a578…`）与 `v0.1.1`（包 `a2f687d6…`）的 tag 与 Release 均保留。
 变更的功能 ID：M5 读写闭环、M6 装机、M7 发布（见 `docs/DEV-PLAN.md` 与 `docs/PARITY.csv` P-00…P-20）
 用户授权范围：**到 M9**（用户原话 m05978「G2确认，继续完成开发到M9」）。据此完成 M7 中**可撤回**的部分（建私有仓、push、tag、Release）；**市场投稿仍未做**——那是对外公开且不可撤回的动作，等用户显式点头。
 
 家族一致性：`npm run audit` → **31/33 通过 · 0 失败 · 2 待人工**（`schema/freeze-contract.md` 未单独建文件；无 `prototypes/v0.2`，v0.1 即 G2 确认版）。**0 失败，可发布**；2 条 warn 结论见 `docs/ACCEPTANCE.md` ACC-00。
 源码检查：`npm run check` 退出码 0（`staticPass: true`、文案红线 64 文件 0 违规、`build-public --check` 同步、schema 24/24、原型 24/24、单测 10/10）
-包检查/大小/hash：`release/xyb-community-head-neck-workbench-0.1.1.tgz` ／ **3.53 MB（3,534,765 字节）**（其中 `assets/reference/ctcae/CTCAE_v5.0_Quick_Reference_5x7.pdf` 2.99 MB，按 AGENTS.md 标准原文必须随包分发）／ SHA-256 **`a2f687d637aebd19e60a869412387c1271cccf7c9f9ed83d43156f79cf041869`** ／ 27 文件
+包检查/大小/hash：`release/xyb-community-head-neck-workbench-0.1.2.tgz` ／ **3.53 MB（3,534,991 字节）**（其中 `assets/reference/ctcae/CTCAE_v5.0_Quick_Reference_5x7.pdf` 2.99 MB，按 AGENTS.md 标准原文必须随包分发）／ SHA-256 **`4ea88d343c25f8d573bd58fe7f83cb3188d37cb6c64a08fd5ae9ddd0f4f626e8`** ／ 27 文件
 实机证据：装机副本探针 `/health` 200、`/ui/` 200（68982 字节）、`/ui/live.js` 200、`/bootstrap` 200，46 表建成；`scripts/verify-live.py` 真 Chrome **8/8**。**Desktop 界面加载未验证**（需用户重启）。
 README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.md` 已随包；`UNLICENSED`；素材为 CTCAE v5.0 官方 Quick Reference（随包分发一份，符合 `docs/23-METRIC-GRADING-AND-ALERTS.md`）
 演示数据清单已清理或明确示例环境：演示数据**明确标注**——`live.js` 在界面顶部插横幅「演示数据 · 内容为虚构示例，不是真实病例。v0.1.0-dev」；导出 Markdown 也标注演示数据
@@ -16,13 +16,13 @@ README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.
 **重装注意**：profile 的 `packageManager` 是 `pnpm@10.34.5`，而 `which pnpm` 可能指向 9.x（会报 store 主版本不匹配）。用 `~/.nvm/versions/node/v22.19.0/bin/pnpm`。同名同版本 tgz 换了内容时 pnpm 会说 `Already up to date`，必须 `pnpm remove -w <pkg>` 再 `add` 才会真正替换。
 市场分发来源：**不投稿**（未授权）——手工 tgz 安装，市场目录无条目
 
-若任务要求本机更新：最终已安装版本 **0.1.1** ／ Profile `~/Library/Application Support/dsh-desktop/harness/profiles/web` ／ 装机副本与 tgz `diff -r` **0 差异** ／ `dsh.profile.bundles` 34 项仍含本包 ／ **打开确认本次修改：未验证（需重启）**。仅安装了包并登记 bundles，未重启 Harness，因此**不能声称界面已加载**。
+若任务要求本机更新：最终已安装版本 **0.1.2** ／ Profile `~/Library/Application Support/dsh-desktop/harness/profiles/web` ／ 装机副本与 tgz `diff -r` **0 差异** ／ `dsh.profile.bundles` **34 项含本包**（注意：`pnpm remove` 会删掉这条登记而 `add` 不补回，必须手工补并跑 `check-install` 复核）／ **打开确认本次修改：未验证（需重启）**。仅安装了包并登记 bundles，未重启 Harness，因此**不能声称界面已加载**。
 
 | 动作 | 目标 | 真实结果/URL/证据 | 状态 |
 | --- | --- | --- | --- |
 | 本地安装 | Desktop/profile | `pnpm add -w` 装入 `profiles/web`，并写入 `dsh.profile.bundles`（34 项，改前改后一致）；`check-install.mjs` ✓；装机副本 `diff -r` 与 tgz **0 差异**；`probe:restart` **PASS**；`probe:routes` **PASS**（7 组路由） | **已执行，界面待重启验收** |
 | Git push | `xyb-openharness-dsh-plugins/head-neck-workbench`（**私有**）/ `main` | 已推；默认分支 `main`（原 `master` 已改名并删远端旧分支） | **已完成** |
-| Release/npm | tag `v0.1.1` + Release 附件 tgz | https://github.com/xyb-openharness-dsh-plugins/head-neck-workbench/releases/tag/v0.1.1 ／ 附件 3,534,765 字节（`gh release view` 实测与本地一致）／ SHA-256 `a2f687d6…` | **已完成** |
+| Release/npm | tag `v0.1.2` + Release 附件 tgz | https://github.com/xyb-openharness-dsh-plugins/head-neck-workbench/releases/tag/v0.1.2 ／ 附件 3,534,991 字节 ／ SHA-256 `4ea88d34…` | **已完成** |
 | 市场 PR | `dataelement/awesome-dsh-workbench` | — | **未执行（需用户授权）** |
 | 上架 | 公开 catalog | — | 不适用 |
 

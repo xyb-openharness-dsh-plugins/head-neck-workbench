@@ -1,7 +1,7 @@
 # 实施任务与当前交接
 
 规格版本：`docs/SPEC.md` v0.1 草案（未签认）
-原型 hash：`10bad5db47de100eeec629f6afd1208459cb17ffbaa8b77eff9e64d9aaa615df`（`prototypes/v0.1/index.html`）
+原型 hash：`9924cc01332040c2c40397076c79c0129af81222227832b49c35004ed7703461`（`prototypes/v0.1/index.html`）
 当前分支：`main`（本地）· 远端仓：**未建**
 
 ## 里程碑（M0–M7）
@@ -10,7 +10,7 @@
 | --- | --- | --- | --- |
 | M0 | 骨架：脚手架 init、目录与文件体系 | **完成** | `dsh-wb-cli 1.5.0` init 生成 150 文件；`dsh-wb-cli check .` → `staticPass: true` |
 | M1 | 调研 + 场景 + SPEC | **完成** | `docs/RESEARCH-2026-10-25.md`（8 条证据 A/B 分级 + 12 维度 + 4 轨道）、`docs/SCENARIOS.md`（10/34/14）、`docs/SOURCES.md`（M01–M08） |
-| M2 | HTML 原型 | **完成（G2 已确认）** | `prototypes/v0.1/index.html`（SHA-256 `10bad5db…`）；`verify_prototype.py` 24/24；`_shots/` 12 张截图 |
+| M2 | HTML 原型 | **完成（G2 已确认）** | `prototypes/v0.1/index.html`（SHA-256 `9924cc01…`）；`verify_prototype.py` 24/24；`_shots/` 12 张截图 |
 | M3 | 数据模型 | **完成（G3 已冻结）** | `schema/migrations/0001_initial.sql`（46 表 / 63 索引 / 35 表带 CHECK）；`check-schema-draft.mjs` 24/24 |
 | M4 | 临床库（本癌种 2026 试验数据） | **不适用** | 场景 L10 裁决「不上临床试验入口」；`web_search` 把 head-and-neck 解析成运动品牌 HEAD，无可信通道 |
 | M5 | 开发版（生产业务实现） | **代码完成，待真机验收** | `lib/client.js` customFrame 外壳、`dsh/store.js`（46 表迁移+种子）、`dsh/server.js`（7 组路由）、`public/live.js` 读写闭环；`verify-live.py` 8/8；`npm run check` 全绿 |
