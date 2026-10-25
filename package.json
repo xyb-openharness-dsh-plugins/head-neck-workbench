@@ -36,7 +36,8 @@
     "check:wording": "node scripts/check-wording.mjs",
     "probe:restart": "node scripts/probe-restart-persistence.mjs",
     "probe:routes": "node scripts/probe-routes.mjs",
-    "check:host": "node scripts/check-host-contract.mjs"
+    "check:host": "node scripts/check-host-contract.mjs",
+    "audit:diversity": "python3 scripts/audit-tab-diversity.py"
   },
   "dsh": {
     "bundle": {
