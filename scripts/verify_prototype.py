@@ -4,7 +4,7 @@
 用法：python3 scripts/verify_prototype.py
 依赖：本机 Chrome（playwright channel="chrome"），不下载浏览器。
 """
-import sys, pathlib
+import sys, pathlib, io, re
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -144,6 +144,17 @@ with sync_playwright() as p:
       return document.querySelector('#wbPage').innerText;
     }""")
     ok('私密页声明不进摘要与导出', '不进复诊摘要' in priv and '不进导出' in priv)
+
+    # 医学断言的内联来源（GAP-1）：临床提示块必须带来源或明写「未核实」，
+    # 不能只有一句断言就走。这条锁住的是「回退到全站 1 处来源」。
+    # 统计整份原型源码，不看当前渲染到哪一页（DOM 里只有当前页签，会误报）
+    _html = io.open('prototypes/v0.1/index.html', encoding='utf-8').read()
+    _notice_with_src = len(re.findall(r"notice\([\s\S]*?,\s*'(?:warn|crit|teal)',\s*'", _html))
+    _direct_src = len(re.findall(r"\+ src\(", _html))
+    _unverified = _html.count('未核实')
+    srccov = {'notice带来源': _notice_with_src, '直接src': _direct_src, '未核实': _unverified}
+    ok('临床提示块带来源或标未核实',
+       _notice_with_src >= 6 and _direct_src >= 2 and _unverified >= 4, srccov)
 
     # 打印样式
     printcss = page.evaluate("""() => Array.from(document.styleSheets).some(ss => {

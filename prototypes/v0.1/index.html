@@ -225,7 +225,7 @@ details.fold .body{padding:12px 14px}
 <div class="topbar">
   <div class="brand">
     <b>小言宝</b><span class="en">VoicePal</span>
-    <span class="vchip">v0.1.1 · 原型</span>
+    <span class="vchip">v0.1.2 · 原型</span>
   </div>
   <div class="status" id="topStatus">演示数据 · 未接入真实病历</div>
   <div class="actions">
@@ -538,7 +538,7 @@ const $$ = s => Array.from(document.querySelectorAll(s));
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const SUBJ = () => DEMO[STATE.profile];
 const src  = t => `<div class="src">来源：${esc(t)}</div>`;
-const notice = (t, cls) => `<div class="notice${cls?' '+cls:''}">${t}</div>`;
+const notice = (t, cls, s) => `<div class="notice${cls?' '+cls:''}">${t}${s?src(s):''}</div>`;
 const tag = (t, c) => `<span class="tag${c?' '+c:''}">${esc(t)}</span>`;
 const empty = t => `<div class="empty">${t}</div>`;
 const kv = rows => `<dl class="kv">${rows.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
@@ -945,7 +945,7 @@ PAGES.tx = {
       ['副神经', esc(g.neck.spinalAccessory)]
     ]), '副神经是否保留直接关系到「能不能抬手梳头」，必须单独记')
     : card('颈清扫', kv([['记录', '本档案还没有颈清扫记录']]), '没有记录不等于没做——鼻咽癌路径通常不做颈清扫，别处做过的也可能没记进来')}
-    ${notice(`全喉切除改变的是<b>两件不可逆的事</b>：不能再经口鼻呼吸（永久造口）、原有发声方式不再可用。本工作台不评价这个选择，只保证这两件事在后续每一页都被当作前提。`,'warn')}
+    ${notice(`全喉切除改变的是<b>两件不可逆的事</b>：不能再经口鼻呼吸（永久造口）、原有发声方式不再可用。本工作台不评价这个选择，只保证这两件事在后续每一页都被当作前提。`,'warn','解剖与术式事实；发声结局见 M05（PMID 42859059，单中心回顾队列 n=92，B 级）')}
     ${card('术后能做什么（自评，不是评定）', s.functions.length? tbl(['方面','具体动作','现在能不能做到'],[
       s.functions.map(f=>[esc(f.domain), esc(f.activity), esc(f.ability)])
     ]) : empty('还没有自评记录'), '自评用来对比变化，不用来判断残疾等级')}`;
@@ -984,7 +984,7 @@ PAGES.airway = {
       ['建立日期', esc(s.airway.establishedOn||'—')],
       ['套管型号', esc(s.airway.tubeType||'—')]
     ]))}
-    ${notice(`<b>永久造口</b>意味着以后都经造口呼吸，不再经口鼻。这不是「暂时不方便」，是身体结构的改变 —— 所以「堵管」「脱管」在本工作台是急症，不是日常小事。`,'warn')}
+    ${notice(`<b>永久造口</b>意味着以后都经造口呼吸，不再经口鼻。这不是「暂时不方便」，是身体结构的改变 —— 所以「堵管」「脱管」在本工作台是急症，不是日常小事。`,'warn','解剖与术式事实。本癌种急救处置细节未取得权威原文，未核实')}
     ${card('和普通人不一样的地方', `<ul class="qlist">
       <li>不能捏着鼻子鼓气（会进到胃里或皮下）</li>
       <li>洗澡要遮住造口，不能直接冲</li>
@@ -1054,7 +1054,7 @@ PAGES.voice = {
     ${card('发音管更换记录', s.voice.prostheses.length ? tbl(['置入','规格','取出','原因'],[
       s.voice.prostheses.map(p=>[esc(p.placed), esc(p.spec), esc(p.removed||'在位'), esc(p.reason||'—')])
     ]) : empty('还没有发音管记录'), '只记「什么时候换的、为什么换」，不存「预计能用多久」')}
-    ${notice(`本工作台<b>不存发音管的「预计寿命」</b>。不同来源给的数字差别很大，写一个数会让患者误以为「没到时间就不用换」。真实判据是漏气、渗漏、感染这些具体现象。`,'warn')}`;
+    ${notice(`本工作台<b>不存发音管的「预计寿命」</b>。不同来源给的数字差别很大，写一个数会让患者误以为「没到时间就不用换」。真实判据是漏气、渗漏、感染这些具体现象。`,'warn','M06（PMID 42815565，多中心回顾 n=135，B 级）：发音管平均使用 115 天、约 3.15 次/年；正因各来源差异大，本页不写单一寿命数字')}`;
   },
   '能说到什么程度': () => {
     const s = SUBJ();
@@ -1093,7 +1093,7 @@ PAGES.swallow = {
     ${card('记录', s.aspirations.length ? tbl(['日期','吃什么/喝什么','咳出来','没咳但异常','之后发烧'],[
       s.aspirations.map(a=>[esc(a.on), esc(a.food), a.coughed? tag('是','warn'):'否', a.silent? tag('是','crit'):'否', a.fever? tag('是','crit'):'否'])
     ]) : empty('还没有呛咳记录'))}
-    ${notice(`<b>没咳的那种更危险。</b>沉默性误吸不会引起剧烈咳嗽，但东西确实进了气道 —— 表现为「饭后声音变湿、反复低烧、痰变多」。所以本页把「咳出来」和「没咳但异常」分成两列，不合并成一个「有没有呛」。`,'crit')}
+    ${notice(`<b>没咳的那种更危险。</b>沉默性误吸不会引起剧烈咳嗽，但东西确实进了气道 —— 表现为「饭后声音变湿、反复低烧、痰变多」。所以本页把「咳出来」和「没咳但异常」分成两列，不合并成一个「有没有呛」。`,'crit','沉默性误吸的识别与发生率原始文献未取得，本条为定性描述，未核实')}
     ${card('怎么记才算有用', `<ul class="qlist">
       <li>写清<b>吃什么、什么形态</b>（水 / 稀粥 / 干饭），不同形态风险不同</li>
       <li>写清<b>当时有没有咳</b>，以及之后几小时有没有发烧、痰变多</li>
@@ -1118,7 +1118,7 @@ PAGES.swallow = {
     ${card('进食记录', s.intake.length ? tbl(['日期','形态','胃口','备注'],[
       s.intake.map(i=>[esc(i.on), esc(i.form), esc(i.appetite), esc(i.note||'—')])
     ]) : empty('还没有进食记录'), '形态用「普通 / 软食 / 半流质 / 流质」四档，和黏膜炎分级同一套锚点')}
-    ${notice(`本工作台<b>不写「多喝水有益健康」这类通用建议</b>。对这条线，喝水的含义取决于具体情境：放疗后口干要少量多次，而有吞咽困难的人大口喝水恰恰是最容易呛的。`,'warn')}
+    ${notice(`本工作台<b>不写「多喝水有益健康」这类通用建议</b>。对这条线，喝水的含义取决于具体情境：放疗后口干要少量多次，而有吞咽困难的人大口喝水恰恰是最容易呛的。`,'warn','失声后社会隔离与心理的量化来源未取得，本条为定性描述，未核实')}
     ${card('营养支持', `<p class="hint">是否需要用营养补充剂、要不要放胃管或胃造瘘，是医生与营养师根据体重趋势、白蛋白、进食量共同判断的。</p>
       <p>本页只做三件事：记录吃了什么形态、记下体重趋势、把「吃不下」写成一条可以问的问题。</p>`)}`;
   }
@@ -1133,10 +1133,10 @@ PAGES.late = {
     ${card('晚期毒性记录', tox.length ? tbl(['方面','出现时间','具体表现','治疗结束后'],[
       tox.map(t=>[esc(t.domain), esc(t.on), esc(t.severity), t.yearsAfter!=null? t.yearsAfter+' 年':'—'])
     ]) : empty('还没有晚期毒性记录'), '「治疗结束后多久」比绝对日期更有用，因为它能对上随访节点')}
-    ${card('张口度', s.trismus.length ? tbl(['日期','门齿间距'],[s.trismus.map(t=>[esc(t.on), t.mm+' mm'])]) : empty('还没有张口度记录'), '张口受限是放疗后常见晚期改变，用毫米记，不用「有点紧」')}
+    ${card('张口度', s.trismus.length ? tbl(['日期','门齿间距'],[s.trismus.map(t=>[esc(t.on), t.mm+' mm'])]) : empty('还没有张口度记录'), '张口受限是放疗后常见晚期改变，用毫米记，不用「有点紧」' + src('牙关紧闭发生率的原始文献未取得，本条为定性描述，未核实'))}
     ${card('看牙', s.dental.length ? tbl(['日期','事件','有没有告诉牙医放疗史','备注'],[
       s.dental.map(d=>[esc(d.on), esc(d.event), d.rtDisclosed? tag('告诉了','teal'):tag('没说','crit'), esc(d.note||'—')])
-    ]) : empty('还没有看牙记录'), '放疗后的牙科处置有特殊风险，牙医必须知道放疗史')}
+    ]) : empty('还没有看牙记录'), '放疗后的牙科处置有特殊风险，牙医必须知道放疗史' + src('放射性骨坏死与放疗后拔牙风险的原始文献未取得，本条为定性描述，未核实'))}
     ${notice('这条轨道是「十年」不是「三个月」。放疗结束后的口干、牙关紧闭、龋齿、甲状腺功能减退，都可能在很久之后才出现 —— 所以它单独成轨，不和急性期混在一起。')}`;
   },
   '复诊带什么': () => {
@@ -1184,7 +1184,7 @@ PAGES.metrics = {
       ['3 级','流质','只能进流质'],
       ['4 级','不能进食','无法经口进食']
     ]), '本工作台采用 WHO 口径，因为它按「今天能吃什么形态」分级，患者自己就能判断')}
-    ${notice(`分级是<b>对照</b>，不是诊断。徽章写「对照 WHO 分级」，并显示区间与来源。<b>不采用 CTCAE 作为该指标口径</b> —— CTCAE 需要口腔检查所见，患者填不了。`,'warn')}
+    ${notice(`分级是<b>对照</b>，不是诊断。徽章写「对照 WHO 分级」，并显示区间与来源。<b>不采用 CTCAE 作为该指标口径</b> —— CTCAE 需要口腔检查所见，患者填不了。`,'warn','吞咽安全与液体稠度的具体建议应来自言语治疗师评估；本条依据未取得原文，未核实')}
     ${card('当前记录', s.mucositis.length ? tbl(['日期','级别','进食形态','备注'],[
       s.mucositis.map(m=>[esc(m.on), m.grade+' 级', esc(m.form), esc(m.note||'—')])
     ]) : empty('还没有黏膜炎记录'))}
