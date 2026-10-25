@@ -1,0 +1,15 @@
+url: https://github.com/xyb-openharness-dsh-plugins/head-neck-workbench
+workbenchId: wb-xyb-openharness-dsh-plugins-head-neck-workbench
+name: 头颈癌工作台
+nameEn: Head and Neck Cancer Workbench
+category: other
+description:
+  zh: 面向头颈癌患者与家属的本机工作台：按原发部位（口腔、口咽、喉、下咽、鼻咽）看自己的病情与病理，管理全喉或部分喉切除后的气道与造口、发声方式与发音管更换、吞咽途径与营养、放疗十年晚期毒性、复诊要带什么，并把检验指标画成趋势。数据只存在本机。
+  en: An on-device workbench for people living with head and neck cancer and their caregivers. Covers primary site and pathology, airway and tracheostomy care after total or partial laryngectomy, voice methods and voice-prosthesis changes, swallowing routes and nutrition, late radiation toxicity, what to bring to follow-up, and lab-metric trends. All data stays on this device.
+screenshots:
+  - https://raw.githubusercontent.com/xyb-openharness-dsh-plugins/head-neck-workbench/main/docs/screenshots/01-board.jpg
+  - https://raw.githubusercontent.com/xyb-openharness-dsh-plugins/head-neck-workbench/main/docs/screenshots/02-disease.jpg
+  - https://raw.githubusercontent.com/xyb-openharness-dsh-plugins/head-neck-workbench/main/docs/screenshots/04-airway.jpg
+  - https://raw.githubusercontent.com/xyb-openharness-dsh-plugins/head-neck-workbench/main/docs/screenshots/05-voice.jpg
+  - https://raw.githubusercontent.com/xyb-openharness-dsh-plugins/head-neck-workbench/main/docs/screenshots/12-one-chart.jpg
+tarball: https://github.com/xyb-openharness-dsh-plugins/head-neck-workbench/releases/download/v0.1.4/xyb-community-head-neck-workbench-0.1.4.tgz
