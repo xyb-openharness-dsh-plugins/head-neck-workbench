@@ -2,6 +2,25 @@
 
 只增不删；每条写清"改了什么 + 为什么 + 用户可见结果"。版本号与 VERSION、package.json 三处必须一致。
 
+## 0.1.4 — 2026-10-25
+
+清理发布包里与本品无关的内容；修正两条自己写错的素材结论。
+
+- **他癌种参考图不再随包**：`assets/reference/metric-trends/{breast-records,lymphoma-metrics}.png`（1.1 MB）
+  只被 `docs/24` 引用、零运行时代码引用，却因 `files: ["assets", …]` 被发到每台患者机器上。
+  移到 `docs/assets/metric-trends/`（`docs/` 不随包），引用路径同步更新。
+  包体积 **3,534,997 → 3,013,532 字节**，27 → **24 文件**。
+- **纠正两条素材结论**（见 `docs/RELEASE.md`）：
+  ① logo 的 license 不是「空着」——字段是 `licenseStatus`，值为
+  `owner permission must be confirmed before public redistribution`，且与膀胱癌/黑色素瘤/甲状腺/胶质瘤
+  **同一文件**（sha256 `e7bf8431…`），属家族级既有状态，不是本仓缺陷；
+  ② 参考图「随包但无人用」这一条已在本版修掉，不是遗留。
+- 新增 `scripts/audit-tab-diversity.py` 与 `npm run audit:diversity`：对装机产物量 34 个页签的
+  正文 bigram 与结构单元相似度，证伪「同一套字段换标题」（实测最高 0.227 / 0.214），明细见 `docs/TAB-DIVERSITY.md`。
+
+**验证**：装机副本 `diff -r` 0 差异；`probe:restart` / `probe:routes` PASS；
+产物上 34 页签全开 0 异常 0 垃圾值；差异度审计 34 页签 0 空页签。**Desktop 界面加载仍需重启确认**。
+
 ## 0.1.3 — 2026-10-25
 
 修一个**会导致 DSH Desktop 起不来**的装机缺陷；顺应用户裁定改品牌名。
