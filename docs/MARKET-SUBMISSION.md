@@ -17,17 +17,17 @@ M7 的投稿对象是 `dataelement/awesome-dsh-workbench`（工作台市场目�
 - **YAML 草稿**：[`market/samqin123__head-neck-workbench.yml`](../market/samqin123__head-neck-workbench.yml)
   按官方目录协议字段：`url` / `workbenchId` / `name` / `nameEn` / `category` / `description.{zh,en}` /
   `screenshots[]` / `tarball`。安装来源选 **GitHub Release tarball**（协议优先级 npm → Release → 源码）。
-- **截图 12 张**：[`docs/screenshots/`](screenshots/)，从**已安装的 0.1.4 产物**（不是源码树）用真 Chrome
+- **截图 12 张**：[`docs/screenshots/`](screenshots/)，从**已安装的 0.1.5 产物**（不是源码树）用真 Chrome
   在 1440×900 拍下：10 个一级页各一张 + 指标卡翻转态 + 一图秀，JPEG quality 78，合计 908KB。
-  画面里带 `v0.1.4` 版本 chip，与市场条目版本一致。
-- **包合规自检**（针对 `release/*-0.1.4.tgz` 解包后逐条扫）：
+  画面里带 `v0.1.5` 版本 chip，与市场条目版本一致（2026-10-25 用 `scripts/capture-screenshots.py` 从装机产物重拍，脚本会断言 chip 与 `package.json` 同源）。
+- **包合规自检**（针对 `release/*-0.1.5.tgz` 解包后逐条扫）：
 
 | 判据 | 结果 |
 | --- | --- |
 | 包体积 < 8 MiB | **2.87 MiB**，通过 |
 | 无个人绝对路径（`/Users/<name>`） | 0 处命中，通过 |
 | 无有效密钥（`sk-*`/`ghp_*`/`AKIA*`/私钥头） | 0 处命中，通过 |
-| 包内版本 = tag = Release 资产 | 0.1.4 / `v0.1.4` / 3,013,532 字节，三者一致 |
+| 包内版本 = tag = Release 资产 | 0.1.5 / `v0.1.5` / 3,013,558 字节，三者一致 |
 | Release 资产 SHA-256 与本地 tgz 一致 | `d8ffb85b4fc93f105da5c5f6c028df37a9b47cf62287ddda53a8c17a29284c38` |
 
 ## 3. 阻塞点：仓库是私有的
@@ -36,7 +36,7 @@ M7 的投稿对象是 `dataelement/awesome-dsh-workbench`（工作台市场目�
 gh repo view xyb-openharness-dsh-plugins/head-neck-workbench --json visibility
 → {"isPrivate":true,"visibility":"PRIVATE"}
 
-curl -sIL .../releases/download/v0.1.4/xyb-community-head-neck-workbench-0.1.4.tgz
+curl -sIL .../releases/download/v0.1.5/xyb-community-head-neck-workbench-0.1.5.tgz
 → 404
 ```
 
@@ -60,7 +60,7 @@ curl -sIL .../releases/download/v0.1.4/xyb-community-head-neck-workbench-0.1.4.t
 
 ## 5. PR 描述要点（起草，未提交）
 
-- 来源：GitHub Release `v0.1.4`，包名 `@xyb-community/head-neck-workbench`，commit `c33e739`
+- 来源：GitHub Release `v0.1.5`，包名 `@xyb-community/head-neck-workbench`，commit `11460f8`
 - 平台：macOS（DSH Desktop，profile `web`），已本机安装、`diff -r` 0 差异
 - 手工确认：**待用户重启后确认**（当前只有自动检查与产物级探针证据）
 - 自动检查：`npm run check` 全绿、34 二级页签在产物上全开、差异度审计 0 模板化、

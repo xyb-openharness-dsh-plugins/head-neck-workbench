@@ -125,7 +125,7 @@ push('宿主工作台清单', listed ? `含 ${OWNER_REPO}` : `不含 ${OWNER_REP
 /* ---------- 7. 目标 profile 是否真的是「加载工作台的那个」 ---------- */
 let bundles = []
 try { bundles = (JSON.parse(readFileSync(join(PROFILE, 'package.json'), 'utf8')).dsh?.profile?.bundles) || [] } catch {}
-const siblings = bundles.filter((b) => b.startsWith('@xyb-community/') && b !== PKG)
+const siblings = bundles.filter((b) => b !== PKG && /-workbench$/.test(b))
 const inBundles = bundles.includes(PKG)
 push('profile bundles', `${bundles.length} 项，兄弟工作台 ${siblings.length} 个，含本包 ${inBundles}`, siblings.length > 0 && inBundles)
 
@@ -135,15 +135,15 @@ console.log('界面加载核验（证据全部来自宿主留下的事实）\n')
 for (const r of rows) console.log(`  ${r.ok ? '·' : '!'} ${r.k.padEnd(width)}  ${r.v}`)
 console.log('')
 
-if (siblings.length === 0) {
-  console.log(`✗ 结论：装错了 profile —— ${PROFILE} 里一个兄弟工作台都没有，`)
-  console.log('  它不会加载工作台。检查 check-install.mjs 判定的安装基准。')
-  process.exit(2)
-}
 if (failures.some((l) => /did not activate/.test(l))) {
   console.log('✗ 结论：**本次运行**里插件激活失败（宿主日志有「did not activate」原文，见上）。')
   console.log('  先跑 npm run smoke:activate 复现，再对照宿主 7 条 register 校验。')
   process.exit(1)
+}
+if (siblings.length === 0) {
+  console.log(`✗ 结论：装错了 profile —— ${PROFILE} 里一个兄弟工作台都没有，`)
+  console.log('  它不会加载工作台。检查 check-install.mjs 判定的安装基准。')
+  process.exit(2)
 }
 if (!running) {
   console.log('⏸ 结论：**DSH Desktop 当前没在运行**（最后一次退出见上），插件不可能被加载。')

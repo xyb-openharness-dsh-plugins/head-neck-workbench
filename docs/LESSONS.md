@@ -375,3 +375,25 @@ logs 里 `[plugin-recovery] removing` 出现在我执行 remove 之前）。bund
 **元教训**：核验脚本自己也要有反例。上面两个错误都是被 `test/desktop-load.test.mjs` 的五条样例
 抓出来的（未运行 / 旧日志不算数 / 本次段失败 / 装错 profile / 已加载），
 写完先喂它几个假现场，比在真机上猜快得多。
+
+## 18. 工具把版本号写死，页面和截图就一起说谎
+
+**发现方式**：重拍市场截图时脚本报「版本 v0.1.0」，而包里明明是 0.1.5。
+不是包错——是 `scripts/serve-artifact.mjs` 里写了 `createHandler(store, { version: '0.1.0', … })`，
+`live.js` 拿这个值去改写顶栏 chip 与演示横幅。于是**本地服务把 0.1.5 的包渲染成 0.1.0**，
+截图、页签验收、人眼看到的数字全是假的。
+
+**为什么闸门没拦住**：`scripts/check-version.mjs` 查的是「package.json / 原型 `.vchip` / VERSION 三处同源」——
+都是**仓库里的字面量**，而错误发生在「服务端注入 → 前端改写」这条运行时链路上。
+静态一致 ≠ 渲染一致，这条和 LESSONS 13（常量对 ≠ 能激活）是同一种病。
+
+**修法与反例**：
+1. `serve-artifact.mjs` 改成读被服务那个包的 `package.json` 取版本（已实测 health 返回 `0.1.5`）。
+2. `verify-tabs-on-artifact.py` 加断言：页面 `.vchip` 与横幅里的版本必须等于包的 `version`。
+   **反向对照**：把 `HN_ARTIFACT` 指向一个 `{"version":"9.9.9"}` 的假包，
+   立刻 `AssertionError: chip 显示 'v0.1.5'，但包是 v9.9.9——版本不同源`。
+3. 截图改为脚本化（`scripts/capture-screenshots.py`），并在 `docs/screenshots/README.md`
+   写下「拍摄版本」，让「这张图是哪一版」可核对。
+
+**元教训**：给验收/截图服务的那个工具，本身是被验收对象的一部分。
+它的默认值、写死值、方便的兜底，都会原样进入证据。

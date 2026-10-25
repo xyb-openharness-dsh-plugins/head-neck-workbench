@@ -16,6 +16,7 @@
   python3 scripts/verify-tabs-on-artifact.py --port 5188
 """
 import argparse
+import os
 import sys
 
 from playwright.sync_api import sync_playwright
@@ -56,6 +57,20 @@ def main():
         banner = page.inner_text("#liveBanner")
         print(f"演示横幅：{banner}")
         assert "虚构" in banner, "横幅必须写明是虚构示例"
+
+        # P 判据：首屏版本号必须与**被服务的那个包**一致。
+        # 这条是被真实事故换来的：serve-artifact 曾把 version 写死 '0.1.0'，
+        # live.js 于是把 chip 与横幅改写成 0.1.0——截图和验收都显示旧版本，
+        # 而包里明明是 0.1.5。工具说谎时，只有「页面数字 vs package.json」能抓住。
+        import json as _json
+        from pathlib import Path as _P
+        pkg_dir = _P(os.environ["HN_ARTIFACT"]) if os.environ.get("HN_ARTIFACT") else None
+        if pkg_dir and (pkg_dir / "package.json").exists():
+            pkg_version = _json.loads((pkg_dir / "package.json").read_text())["version"]
+            chip = page.inner_text(".vchip") if page.locator(".vchip").count() else ""
+            print(f"顶栏 chip：{chip!r}｜package.json：{pkg_version}")
+            assert f"v{pkg_version}" in chip, f"chip 显示 {chip!r}，但包是 v{pkg_version}——版本不同源"
+            assert f"v{pkg_version}" in banner, f"横幅版本与包不一致：{banner!r} vs v{pkg_version}"
 
         navs = page.eval_on_selector_all(
             "nav a[data-page], .sidenav a[data-page]", "els => els.map(e => e.dataset.page)"

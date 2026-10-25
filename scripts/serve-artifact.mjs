@@ -14,6 +14,7 @@
 import { createServer } from 'node:http'
 import { resolve } from 'node:path'
 import { homedir } from 'node:os'
+import { readFile } from 'node:fs/promises'
 
 const argv = process.argv.slice(2)
 const opt = (name, dflt) => {
@@ -38,7 +39,11 @@ const { openStore } = await import(resolve(pkgDir, 'dsh/store.js'))
 
 const store = openStore({ path: db })
 const seeded = store.seedIfEmpty()
-const handler = createHandler(store, { version: '0.1.0', uiPrefix: `${API_PREFIX}/ui` })
+// 版本号必须来自**被服务的那个包**，不能写死：
+// 写死 '0.1.0' 会让 live.js 把顶栏 chip 与横幅改写成旧版本，
+// 而截图/验收脚本看到的是「0.1.0」——工具说谎比没有工具更糟（2026-10-25 实际踩到）。
+const pkgVersion = JSON.parse(await readFile(resolve(pkgDir, 'package.json'), 'utf8')).version
+const handler = createHandler(store, { version: pkgVersion, uiPrefix: `${API_PREFIX}/ui` })
 
 const server = createServer((req, res) => {
   handler(req, res).catch((err) => {
