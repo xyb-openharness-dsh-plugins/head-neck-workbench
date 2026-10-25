@@ -2,7 +2,7 @@
 
 > 依据 [28-INTERACTION-PATH-DESIGN](28-INTERACTION-PATH-DESIGN.md)。本文件是 **IP1 前置输入**：没有它 HTML 不开工；同时是 [15-HVT-REVIEW](15-HVT-REVIEW.md) X 层的验收对象。
 > 状态：**草案，待 G2 签认**。签认人/日期：待补。
-> 对应原型：`prototypes/v0.1/index.html`（SHA-256 `9924cc01332040c2c40397076c79c0129af81222227832b49c35004ed7703461`，10 一级 / 34 二级）。
+> 对应原型：`prototypes/v0.1/index.html`（SHA-256 `0c1c8aca775a4d59b0b0aa95d53f277c3cfb9dabb606f08912a15ac599d910bb`，10 一级 / 34 二级）。
 
 ## 0. 两条通道的分工（用户 2026-10-24 原话落地）
 

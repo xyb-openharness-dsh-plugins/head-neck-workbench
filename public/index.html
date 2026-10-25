@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>小言宝 · VoicePal — 头颈癌工作台（原型 v0.1）</title>
+<title>小嗓宝 · VoicePal — 头颈癌工作台（原型 v0.1）</title>
 <style>
 :root{
   --ink:#16211d; --ink-2:#3c4a44; --muted:#6f7d76;
@@ -224,8 +224,8 @@ details.fold .body{padding:12px 14px}
 <body>
 <div class="topbar">
   <div class="brand">
-    <b>小言宝</b><span class="en">VoicePal</span>
-    <span class="vchip">v0.1.2 · 原型</span>
+    <b>小嗓宝</b><span class="en">VoicePal</span>
+    <span class="vchip">v0.1.3 · 原型</span>
   </div>
   <div class="status" id="topStatus">演示数据 · 未接入真实病历</div>
   <div class="actions">
@@ -1345,7 +1345,7 @@ function init(){
   });
   $('#btnCopyPrompt').addEventListener('click', ()=>{
     const s = SUBJ();
-    const txt = `我在用「小言宝 VoicePal」记录${s.site}癌的治疗与康复。当前页：${NAV.find(n=>n.id===STATE.page).name} › ${STATE.tab}。\n我的情况：${s.site} ${s.siteDetail}，${s.stage.overall}，${s.surgery? s.surgery.procedure : '未手术'}，${s.airway.kind}。\n请基于以上信息帮我整理这次想问医生的问题。不要替我判断治疗方案。`;
+    const txt = `我在用「小嗓宝 VoicePal」记录${s.site}癌的治疗与康复。当前页：${NAV.find(n=>n.id===STATE.page).name} › ${STATE.tab}。\n我的情况：${s.site} ${s.siteDetail}，${s.stage.overall}，${s.surgery? s.surgery.procedure : '未手术'}，${s.airway.kind}。\n请基于以上信息帮我整理这次想问医生的问题。不要替我判断治疗方案。`;
     navigator.clipboard?.writeText(txt); toast('已复制场景提示词');
   });
   $('#btnCopySummary').addEventListener('click', ()=>{

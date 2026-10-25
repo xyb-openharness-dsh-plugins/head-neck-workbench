@@ -1,12 +1,12 @@
 # 发布与回滚记录
 
-版本/tag/commit：**0.1.2**（`package.json` / `VERSION` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 四处同源，`check-version.mjs` 通过）／ **tag `v0.1.2` 已打** ／ Release 已建 ／ commit `3130bf3`。历史版本 `v0.1.0`（包 `b610a578…`）与 `v0.1.1`（包 `a2f687d6…`）的 tag 与 Release 均保留。
+版本/tag/commit：**0.1.3**（`package.json` / `VERSION` / `lib/client.js` 的 `VERSION` / 原型 `.vchip` 四处同源，`check-version.mjs` 通过）／ tag `v0.1.3` ／ Release ／ commit 见本轮提交。历史 `v0.1.0`（`b610a578…`）、`v0.1.1`（`a2f687d6…`）、`v0.1.2`（`4ea88d34…`）的 tag 与 Release 均保留。**0.1.0–0.1.2 装进 Desktop 会激活失败**（businessWidth 0.72 超宿主上限 0.7），0.1.3 已修，勿再安装前三个版本。
 变更的功能 ID：M5 读写闭环、M6 装机、M7 发布（见 `docs/DEV-PLAN.md` 与 `docs/PARITY.csv` P-00…P-20）
 用户授权范围：**到 M9**（用户原话 m05978「G2确认，继续完成开发到M9」）。据此完成 M7 中**可撤回**的部分（建私有仓、push、tag、Release）；**市场投稿仍未做**——那是对外公开且不可撤回的动作，等用户显式点头。
 
 家族一致性：`npm run audit` → **31/33 通过 · 0 失败 · 2 待人工**（`schema/freeze-contract.md` 未单独建文件；无 `prototypes/v0.2`，v0.1 即 G2 确认版）。**0 失败，可发布**；2 条 warn 结论见 `docs/ACCEPTANCE.md` ACC-00。
 源码检查：`npm run check` 退出码 0（`staticPass: true`、文案红线 64 文件 0 违规、`build-public --check` 同步、schema 24/24、原型 24/24、单测 10/10）
-包检查/大小/hash：`release/xyb-community-head-neck-workbench-0.1.2.tgz` ／ **3.53 MB（3,534,991 字节）**（其中 `assets/reference/ctcae/CTCAE_v5.0_Quick_Reference_5x7.pdf` 2.99 MB，按 AGENTS.md 标准原文必须随包分发）／ SHA-256 **`4ea88d343c25f8d573bd58fe7f83cb3188d37cb6c64a08fd5ae9ddd0f4f626e8`** ／ 27 文件
+包检查/大小/hash：`release/xyb-community-head-neck-workbench-0.1.3.tgz` ／ **3.53 MB（3,534,997 字节）**（其中 `assets/reference/ctcae/CTCAE_v5.0_Quick_Reference_5x7.pdf` 2.99 MB，按 AGENTS.md 标准原文必须随包分发）／ SHA-256 **`eb8209e1858a2fc38ecb7591a2316046e864d34b51dd5c50b8c4fb76799982f3`** ／ 27 文件
 实机证据：装机副本探针 `/health` 200、`/ui/` 200（68982 字节）、`/ui/live.js` 200、`/bootstrap` 200，46 表建成；`scripts/verify-live.py` 真 Chrome **8/8**。**Desktop 界面加载未验证**（需用户重启）。
 README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.md` 已随包；`UNLICENSED`；素材为 CTCAE v5.0 官方 Quick Reference（随包分发一份，符合 `docs/23-METRIC-GRADING-AND-ALERTS.md`）
 演示数据清单已清理或明确示例环境：演示数据**明确标注**——`live.js` 在界面顶部插横幅「演示数据 · 内容为虚构示例，不是真实病例。v0.1.0-dev」；导出 Markdown 也标注演示数据
@@ -16,7 +16,9 @@ README/许可证/素材来源/运行依赖/更新说明：`README.md` / `NOTICE.
 **重装注意**：profile 的 `packageManager` 是 `pnpm@10.34.5`，而 `which pnpm` 可能指向 9.x（会报 store 主版本不匹配）。用 `~/.nvm/versions/node/v22.19.0/bin/pnpm`。同名同版本 tgz 换了内容时 pnpm 会说 `Already up to date`，必须 `pnpm remove -w <pkg>` 再 `add` 才会真正替换。
 市场分发来源：**不投稿**（未授权）——手工 tgz 安装，市场目录无条目
 
-若任务要求本机更新：最终已安装版本 **0.1.2** ／ Profile `~/Library/Application Support/dsh-desktop/harness/profiles/web` ／ 装机副本与 tgz `diff -r` **0 差异** ／ `dsh.profile.bundles` **34 项含本包**（注意：`pnpm remove` 会删掉这条登记而 `add` 不补回，必须手工补并跑 `check-install` 复核）／ **打开确认本次修改：未验证（需重启）**。仅安装了包并登记 bundles，未重启 Harness，因此**不能声称界面已加载**。
+若任务要求本机更新：最终已安装版本 **0.1.3** ／ Profile `~/Library/Application Support/dsh-desktop/harness/profiles/web` ／ 装机副本与 tgz `diff -r` **0 差异** ／ `dsh.profile.bundles` **34 项含本包** ／ **打开确认本次修改：未验证（需重启）**。仅安装了包并登记 bundles，未重启 Harness，因此**不能声称界面已加载**。
+
+**装机失败史（必读）**：0.1.0–0.1.2 装进去会让 DSH Desktop 起不来——渲染进程报 `web boot: 1 entry did not activate`，`plugin-recovery` 自动卸载后才恢复（harness.log 2026-10-24T23:58:41Z）。根因是 `businessWidth=0.72` 超出宿主 `register()` 的 `[0.25, 0.7]` 硬区间。0.1.3 已改为 0.68 并新增 `scripts/check-host-contract.mjs` 把宿主 7 条校验接进 `npm run check`。
 
 | 动作 | 目标 | 真实结果/URL/证据 | 状态 |
 | --- | --- | --- | --- |

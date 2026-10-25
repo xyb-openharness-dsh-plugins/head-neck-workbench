@@ -2,6 +2,30 @@
 
 只增不删；每条写清"改了什么 + 为什么 + 用户可见结果"。版本号与 VERSION、package.json 三处必须一致。
 
+## 0.1.3 — 2026-10-25
+
+修一个**会导致 DSH Desktop 起不来**的装机缺陷；顺应用户裁定改品牌名。
+
+**根因**：`businessWidth` 写了脚手架的默认值 **0.72**，而宿主 `register()` 硬性要求
+`0.25 ≤ businessWidth ≤ 0.7`，不合格就 throw → 插件 `apply` 失败 → 渲染进程报
+`web boot: 1 entry did not activate`，Desktop 无法启动，靠 `plugin-recovery` 自动卸载才恢复。
+宿主日志只写 `failed`、不给原因，所以第一次排查时误判成 pnpm 的问题（见 LESSONS 15 的纠正）。
+
+**修了什么**
+- `lib/client.js` 与 `lib/layout.js` 的 `businessWidth`：0.72 → **0.68**（0.68 + 会话默认 0.32 = 1.00）。
+- 新增 `scripts/check-host-contract.mjs`：把宿主 `register()` 的 7 条校验（title/Component、
+  repository 正则、customFrame 布尔、businessSide 枚举、**businessWidth 区间**、headerLayout 枚举、
+  业务区+会话区不超 1）复刻成本地闸门，接进 `npm run check`。反向对照：宽度改回 0.72 立刻 FAIL。
+- `ctx.effect(fn, 'label')` 改回 `ctx.effect(fn)`，与家族里能正常加载的插件写法完全一致——不赌未验证的 API。
+
+**品牌**：`小言宝 · VoicePal` → **`小嗓宝 · VoicePal`**（用户裁定：小泉宝是膀胱癌/泌尿族，
+头颈癌须另起；「嗓」比「言」更能罩住喉、咽、口腔，同时保留「声音」这个情绪核心）。
+包名 `@xyb-community/head-neck-workbench` 不变。
+
+**验证**：装机副本 `diff -r` 0 差异；`probe:restart` / `probe:routes` PASS；
+产物上 10 一级 / 34 二级页签全开、0 异常 0 垃圾值；chip 显示 `v0.1.3`。
+**Desktop 界面加载：仍待用户重启后确认**（这一次插件应能激活，但未观察到的状态不写成通过）。
+
 ## 0.1.2 — 2026-10-25
 
 补内容合规缺口 **GAP-1**：医学断言的内联来源原来全站只有 1 处。

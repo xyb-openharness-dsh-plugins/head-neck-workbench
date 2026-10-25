@@ -276,30 +276,61 @@ ALT 各实验室上限在 40–55 U/L 之间浮动，差 1.4 倍；拿成人通�
 可复用做法：凡是**只在新数据形态下才走到**的分支（子表、可选术式、未做的检查），
 必须用「数据库真的没有这条」的档案点一遍，光点演示档案永远发现不了。
 
-## 15. `pnpm remove` 会删掉 dsh.profile.bundles 登记，而 `add` 不会补回
+## 15.【已被第 16 条纠正】~~`pnpm remove` 会删掉 dsh.profile.bundles 登记~~
 
-**现象**：按「remove 再 add」重装插件后，装机版本对、文件对、`diff -r` 0 差异、
-`check-install` 里 dependencies 也指向新 tgz——**但 `dsh.profile.bundles` 从 34 项掉到 33 项，
-且不含本包**。宿主按 bundles 决定加载哪些插件，所以这个包在盘上却永远不会被加载，
-界面自然也不会出现。表现和「没装」一样，但每一步命令都返回成功。
+**这条归因是错的，保留以便不再犯同类判断错误。**
 
-**为什么**：`remove` 是 pnpm 的正常行为——它把依赖从 profile 的 `package.json` 里摘掉，
-而 `dsh.profile.bundles` 是 DSH 自己写在同一份 package.json 里的字段，pnpm 不认识它，
-一并清理。`add` 只会加 dependencies 和装文件，**不会**知道你还需要一条 bundles 登记。
+我当时观察到：重装后 `dsh.profile.bundles` 从 34 掉到 33 且不含本包，于是归因为
+「`pnpm remove` 清了 bundles、`add` 不补回」。实际原因是宿主自己的 **plugin-recovery**
+在插件激活失败后把它从 profile 里移除了（harness.log 有原文：
 
-**修法**（每次重装后必须做，不是只在出错时做）：
-```bash
-python3 - <<PY
-import json
-p="<profile>/package.json"; d=json.load(open(p)); b=d['dsh']['profile']['bundles']
-n='@xyb-community/head-neck-workbench'
-if n not in b:
-    i=max(i for i,x in enumerate(b) if x.startswith('@xyb-community/'))
-    b.insert(i+1,n); json.dump(d,open(p,'w'),ensure_ascii=False,indent=2)
-PY
-node scripts/check-install.mjs   # 必须看到 ✓ 已登记
+```
+[plugin-recovery] removing @xyb-community/head-neck-workbench from the web profile
+[plugin-recovery] rebuilt the web profile after removing ...; 0 compatibility issues remain
 ```
 
-**元教训**：`check-install` 报 ✓ 是有前提的——它检查的是「dependencies 里有没有」。
-一条检查只覆盖它写出来的那个字段，**不能当作「装好了」的整体结论**。
-重装流程的验收条件应该是三条并列：版本对、文件 `diff -r` 0 差异、**bundles 里有登记**。
+logs 里 `[plugin-recovery] removing` 出现在我执行 remove 之前）。bundles 掉项是**结果**，不是原因。
+
+**为什么这个错判危险**：把「插件装不进去」误读成「pnpm 的副作用」，
+就会去修安装脚本，而不是去查插件为什么激活失败——真 bug 会被一直留在包里。
+
+**判据**：看到「安装/登记出现异常」先假设是**代码**的问题，去宿主日志里找
+`plugin-recovery` / `did not activate` / `failed`，再谈工具链。
+
+## 16. 宿主 register() 校验不合格 → 插件激活失败，且日志不告诉你原因
+
+**现象**：装进 DSH Desktop 重启后，整app起不来。日志只有三行：
+
+```
+[renderer] [stderr] Error: web boot: 1 entry did not activate
+[renderer] @xyb-community/head-neck-workbench: failed
+[renderer] [stderr] Failed to load plugins
+```
+
+没有栈、没有字段名、没有抛错消息。`plugin-recovery` 随后自动把它删掉，app 恢复。
+
+**根因**：`dsh-desktop-workbenches/client.js` 的 `register()` 里有一串校验，任一不合格就 throw：
+
+| 校验 | 条件 | 后果 |
+| --- | --- | --- |
+| 基本字段 | `!title \|\| typeof Component !== 'function'` | `Invalid workbench registration` |
+| repository | 必须匹配 `^https://github\.com/<owner>/<repo>(\.git)?/?$` | `Workbench repository must be a GitHub URL` |
+| customFrame | 必须是 boolean | `Invalid custom frame flag` |
+| **businessWidth** | **必须在 [0.25, 0.7]** | **`Workbench business width must be between 0.25 and 0.7`** |
+| businessSide | 必须 left/right | `Invalid workbench business side` |
+| headerLayout | 必须 default/compact | `Invalid workbench header layout` |
+
+我踩的是 **businessWidth = 0.72**——那是脚手架的默认值，也写进了 `lib/layout.js` 和
+`lib/client.js` 两处，`check-workbench-package` 不检查这个区间，所以一路绿灯到装机才炸。
+
+**修法**：宽度取 `0.68`（`0.68 + 会话默认 0.32 = 1.00`，本来 0.72 就已经和会话区打架）。
+并新增 `scripts/check-host-contract.mjs` 把宿主这 7 条规则复刻成 `npm run check` 的一部分，
+反向对照验证过：把宽度改回 0.72，闸门立刻 FAIL 并打印宿主原文。
+
+**元教训**：**「本地全绿」和「装进去能活」是两套校验**。宿主在渲染进程里做的校验，
+本地脚本一条都覆盖不到，除非你主动把规则抄过来。凡是「装进去才崩、且崩得没细节」的，
+第一反应应该是——去宿主源码里把它的校验规则找出来，变成自己的闸门。
+
+**另注**：`ctx.effect(fn, 'label')` 这种带第二参数的用法，家族里没有任何一个能正常
+加载的插件用过。为降低未知风险，已改回和膀胱癌/胶质瘤完全一致的 `ctx.effect(fn)`。
+
