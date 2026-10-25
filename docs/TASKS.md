@@ -89,3 +89,15 @@
 - 黏膜炎用 WHO 口径（DESIGN-04）
 - 失声者走「家属代记 + 打印急救卡」，不做语音输入（DESIGN-08）
 - 未授权：推送到远端、公开发布、市场投稿
+
+## 0.1.3 事故复盘与 M9 延伸（脚手架 1.5.4）
+
+| 项 | 结论 |
+| --- | --- |
+| 现象 | 装 0.1.0–0.1.2 后 DSH Desktop 起不来；日志 `web boot: 1 entry did not activate` + `@xyb-community/head-neck-workbench: failed`，`plugin-recovery` 自动卸载后才恢复 |
+| 根因 | 宿主 `desktopWorkbenches.register()` 要求 `0.25 ≤ businessWidth ≤ 0.7`，本项目写 **0.72**（脚手架惯用值）→ `apply` throw → 激活失败 |
+| 为什么本地查不出 | 这条校验只在渲染进程；`check-workbench-package` / `check-conformance` / 测试全都不看这个区间 |
+| 本项目修法 | `businessWidth` 0.72 → **0.68**（0.68 + 会话 0.32 = 1.00）；新增 `scripts/check-host-contract.mjs` 复刻宿主 7 条校验并接进 `npm run check`（把宽度改回 0.72 会 FAIL 并打印宿主原文） |
+| 上游修法（M9 延伸） | starter **1.5.4**：`check-conformance` 上限 0.75 → **0.7**（原来比宿主还宽，等于放行）；`init` 对 `business-first` 也校验宽度；`templates/check-host-contract.mjs` 随 init 下发并接进派生项目的 `check` |
+| 双向验证 | 0.68 通过 / 0.72 拦下 / 非 GitHub repository 拦下；starter `npm test` 38/38、`check-starter` 167 文件 pass |
+| 仍未验证 | Desktop 重启后界面是否真的加载——**观测到之前不写通过** |
