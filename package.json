@@ -1,6 +1,6 @@
 {
   "name": "@xyb-community/head-neck-workbench",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "面向头颈癌患者与家属的本地优先工作台：原发部位决定一切，把手术与放疗的功能代价、气管造口护理、放疗后长期毒性和复诊准备理清楚",
   "private": true,
   "type": "module",
@@ -38,7 +38,8 @@
     "probe:routes": "node scripts/probe-routes.mjs",
     "check:host": "node scripts/check-host-contract.mjs",
     "audit:diversity": "python3 scripts/audit-tab-diversity.py",
-    "smoke:activate": "node scripts/smoke-activate.mjs"
+    "smoke:activate": "node scripts/smoke-activate.mjs",
+    "audit:claims": "python3 scripts/audit-claim-sources.py"
   },
   "dsh": {
     "bundle": {

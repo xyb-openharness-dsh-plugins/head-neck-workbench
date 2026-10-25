@@ -153,6 +153,10 @@ details.fold .body{padding:12px 14px}
 .mc-back-body{font-size:12px;color:var(--ink-2);overflow:auto}
 .mc-back-body table{width:100%;font-size:11.5px;border-collapse:collapse}
 .mc-back-body td{padding:2px 4px;border-bottom:1px dotted var(--line)}
+.mc-back-body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+.mc-back-body .spark{display:block;max-width:100%}
+.mc-back-foot{margin-top:8px;font-size:10.5px;color:var(--muted);line-height:1.45}
+.spark-src{margin-top:6px;font-size:11px;color:var(--ink-2);font-family:var(--mono)}
 .mc-flip-hint{position:absolute;right:12px;bottom:10px;font-size:10.5px;color:var(--muted);opacity:.75}
 
 /* 一图秀 */
@@ -225,7 +229,7 @@ details.fold .body{padding:12px 14px}
 <div class="topbar">
   <div class="brand">
     <b>小嗓宝</b><span class="en">VoicePal</span>
-    <span class="vchip">v0.1.5 · 原型</span>
+    <span class="vchip">v0.1.6 · 原型</span>
   </div>
   <div class="status" id="topStatus">演示数据 · 未接入真实病历</div>
   <div class="actions">
@@ -709,10 +713,55 @@ function chartSVG(codes, W, H){
   return out;
 }
 
+/* 一图秀的「读数」：只复述记录本身，不做医学判断。
+   三条规则都只看本档案的数据：①最近一次与上一次的差 ②这个差是否超出该指标自己的日常波动
+   ③最近两次的检测来源/方法是否变了（变了那段差就不能当身体变化读）。 */
+function chartReadout(codes){
+  const s = SUBJ();
+  const obs = chartData(codes);
+  if(!obs.length) return '';
+  const rows = [], notes = [];
+  codes.forEach(code=>{
+    const m = s.metrics.find(x=>x.code===code); if(!m) return;
+    const pts = obs.filter(o=>o.code===code).sort((a,b)=> a.on<b.on?-1:1);
+    if(!pts.length) return;
+    const last = pts[pts.length-1], prev = pts[pts.length-2];
+    const d = prev ? +(last.v - prev.v).toFixed(2) : null;
+    rows.push([esc(m.label), `${last.v}${esc(m.unit)}`, esc(last.on),
+      d===null ? '—' : `${d>0?'+':''}${d}${esc(m.unit)}`, String(pts.length)]);
+    if(!prev){
+      notes.push(`${esc(m.label)}：窗口里只有 1 次记录（${esc(last.on)} ${last.v}${esc(m.unit)}），不连线，也看不出趋势。`);
+      return;
+    }
+    if(prev.lab !== last.lab || prev.method !== last.method){
+      const a = prev.method||prev.lab, b = last.method||last.lab;
+      notes.push(`${esc(m.label)}：最近两次的检测来源不同（${esc(a)} → ${esc(b)}），这段变化里含检测差异，<b>不能直接当成身体的变化</b>。`);
+    }
+    const deltas = [];
+    for(let i=1;i<pts.length;i++) deltas.push(Math.abs(pts[i].v - pts[i-1].v));
+    if(deltas.length >= 2){
+      const sorted = deltas.slice().sort((x,y)=>x-y);
+      const med = sorted[Math.floor(sorted.length/2)];
+      if(med > 0 && Math.abs(d) >= med*2){
+        notes.push(`${esc(m.label)}：这次的变化（${d>0?'+':''}${d}${esc(m.unit)}）比它自己平时的波动（约 ${med}${esc(m.unit)}）大，值得在复诊时提一句「这次变动是什么原因」。`);
+      }
+    }
+  });
+  if(!rows.length) return '';
+  return card('这组数据的读数', `
+    <p class="src" style="margin:0 0 8px">下面只复述记录本身：<b>不是医学判断</b>，不说明病情好坏，也不代表该做什么。</p>
+    ${tbl(['指标','最近一次','日期','与上一次差','窗口内点数'], rows)}
+    ${notes.length ? `<ul class="qlist" style="margin-top:10px">${notes.map(n=>`<li>${n}</li>`).join('')}</ul>` : `<p class="src" style="margin-top:8px">这几条线在所选窗口内没有超出自身波动的变化，也没有换检测来源。</p>`}`,
+    '归一化只用于画线；这里给的是<b>原始数值与原始单位</b>，要拿去问医生请用原始数')
+    + src('读数来自本档案的观察记录（同一指标目录、同一条事实源），不含外部医学结论；示例数据为虚构');
+}
+
 function mountChart(){
   const wrap = $('#chartHost'); if(!wrap) return;
   const codes = STATE.chartCodes || ['weight','alb','hb'];
   wrap.innerHTML = chartSVG(codes, 720, 300);
+  const ro = $('#chartReadout');
+  if(ro) ro.innerHTML = chartReadout(codes);
   const lg = $('#chartLegend');
   if(lg){
     lg.innerHTML = codes.map((c,i)=>{
@@ -730,6 +779,49 @@ function latestObs(code){
   return o;
 }
 
+/* 卡片背面：迷你趋势（单点不连线；空记录给空态）。
+   归一化只用本指标全期 min/max —— 与一图秀同一条规则，卡片背面和一图秀不能各算一套。 */
+function sparkSVG(m, obsDesc, W, H){
+  W = W || 292; H = H || 120;
+  const o = obsDesc.slice().sort((a,b)=> a.on<b.on?-1:1);
+  if(!o.length) return `<div class="empty" style="padding:18px">还没有记录</div>`;
+  const P = {l:30,r:10,t:10,b:22};
+  const iw = W-P.l-P.r, ih = H-P.t-P.b;
+  const vals = o.map(x=>x.v);
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  const yOf = v => mx===mn ? P.t+ih/2 : P.t + ih - ((v-mn)/(mx-mn))*ih;
+  const t0 = new Date(o[0].on).getTime();
+  const t1 = new Date(o[o.length-1].on).getTime();
+  const X = d => P.l + (t1===t0 ? iw/2 : (new Date(d).getTime()-t0)/(t1-t0)*iw);
+  let out = `<svg class="spark" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(m.label)} 趋势曲线，共 ${o.length} 次记录">`;
+  out += `<line x1="${P.l}" y1="${P.t}" x2="${P.l}" y2="${H-P.b}" stroke="#e6e1d2"/>`;
+  out += `<line x1="${P.l}" y1="${H-P.b}" x2="${W-P.r}" y2="${H-P.b}" stroke="#e6e1d2"/>`;
+  if(o.length > 1){
+    const d = o.map((x,i)=> `${i?'L':'M'}${X(x.on).toFixed(1)},${yOf(x.v).toFixed(1)}`).join(' ');
+    out += `<path class="spark-line" d="${d}" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  o.forEach(x=>{
+    out += `<circle cx="${X(x.on).toFixed(1)}" cy="${yOf(x.v).toFixed(1)}" r="${x===o[o.length-1]?3.4:2.6}" fill="#fff" stroke="var(--teal)" stroke-width="2"><title>${x.v}${esc(m.unit)} · ${x.on}</title></circle>`;
+  });
+  const last = o[o.length-1];
+  const lx = X(last.on), ly = yOf(last.v);
+  const nearRight = lx > W - P.r - 34;
+  out += `<text x="${(nearRight? lx-7 : lx+7).toFixed(1)}" y="${(ly-6).toFixed(1)}" font-size="11" font-weight="700" fill="var(--teal)"${nearRight?' text-anchor="end"':''}>${last.v}</text>`;
+  if(o.length > 1){
+    out += `<text x="${P.l-5}" y="${P.t+8}" font-size="9.5" fill="#8a8778" text-anchor="end">${mx}</text>`;
+    out += `<text x="${P.l-5}" y="${H-P.b+2}" font-size="9.5" fill="#8a8778" text-anchor="end">${mn}</text>`;
+    out += `<text x="${P.l}" y="${H-7}" font-size="9.5" fill="#8a8778">${o[0].on.slice(5)}</text>`;
+    out += `<text x="${W-P.r}" y="${H-7}" font-size="9.5" fill="#8a8778" text-anchor="end">${last.on.slice(5)}</text>`;
+  }else{
+    // 单点：只有一天，别把日期和数值叠在一起重复画两遍
+    out += `<text x="${W/2}" y="${H-7}" font-size="9.5" fill="#8a8778" text-anchor="middle">${last.on}</text>`;
+    out += `<text x="${W/2}" y="${P.t+16}" font-size="10" fill="#8a8778" text-anchor="middle">只有 1 个点，不连线</text>`;
+  }
+  out += `</svg>`;
+  out += `<div class="spark-src">${o.length>1?`最近 ${last.on} · ${last.v}${esc(m.unit)}`:`最近 ${last.on} · ${last.v}${esc(m.unit)}`}${o.length>1?` · 上次 ${o[o.length-2].on}`:''}</div>`;
+  return out;
+}
+
 function metricCard(m, i){
   const o = latestObs(m.code);
   const cur = o[0];
@@ -739,10 +831,7 @@ function metricCard(m, i){
     const d = +(cur.v - prev.v).toFixed(1);
     delta = `${d>0?'+':''}${d} ${m.unit} · 上次 ${prev.v}（${prev.on}）`;
   }
-  const back = o.length
-    ? `<table>${o.slice(0,4).map(x=>`<tr><td>${x.on}</td><td style="text-align:right">${x.v}</td></tr>`).join('')}</table>
-       <div class="src" style="margin-top:8px">按本指标全期 min/max 归一化<br>不可与其它指标比较</div>`
-    : `<div class="src">还没有记录</div>`;
+  const back = sparkSVG(m, o);
   const grad = m.grade && m.grade !== '无' ? tag(`对照 ${m.grade}`, 'teal') : tag('无分级标准');
   return `<div class="metric-card" data-flipped="false" data-metric="${m.code}" role="group" tabindex="0" aria-pressed="false" aria-label="${esc(m.label)} 指标卡，可翻转查看趋势">
     <div class="mc-inner">
@@ -754,8 +843,9 @@ function metricCard(m, i){
         <div class="mc-flip-hint">点卡片看趋势 ›</div>
       </div>
       <div class="mc-face back" aria-hidden="true" inert>
-        <div class="mc-back-h">${esc(m.label)} 最近记录</div>
+        <div class="mc-back-h">${esc(m.label)} · 趋势（${o.length} 次记录）</div>
         <div class="mc-back-body">${back}</div>
+        <div class="mc-back-foot">按本指标<b>全期 min/max</b> 归一化 · 不可与其它指标比较</div>
       </div>
     </div>
   </div>`;
@@ -886,7 +976,8 @@ PAGES.disease = {
     ${p.variantRaw ? notice(`报告里出现了变异型描述（${esc(p.variantRaw)}）。本工作台只做两件事：把原文照录下来、提醒你它需要单独问医生。`,'warn') : ''}
     ${card('生物标志物', s.biomarkers.length ? tbl(['标志物','结果','方法','标本','日期'],[
       s.biomarkers.map(b=>[esc(b.marker), b.value!=null? esc(String(b.value)) : esc(b.result||'—'), esc(b.method||'—'), esc(b.specimen||'—'), esc(b.on||'—')])
-    ]) + (s.biomarkers.some(b=>b.note) ? `<p class="hint">${esc(s.biomarkers.filter(b=>b.note).map(b=>b.marker+'：'+b.note).join('；'))}</p>`:'') : empty('还没有记录生物标志物'), 'CPS 与 TPS 不是一回事，方法（22C3 / SP263）也不同，必须一起记')}`;
+    ]) + (s.biomarkers.some(b=>b.note) ? `<p class="hint">${esc(s.biomarkers.filter(b=>b.note).map(b=>b.marker+'：'+b.note).join('；'))}</p>`:'') : empty('还没有记录生物标志物'), 'CPS 与 TPS 不是一回事，方法（22C3 / SP263）也不同，必须一起记')}
+    ${src('EV-07 头颈部鳞癌 PD-L1 检测共识（中华病理学杂志 2024;53(11):1097）：CPS 需同时计入肿瘤细胞与肿瘤相关炎性细胞，与 TPS 不是同一套判读，两者不可互换')}`;
   },
   '病理报告原文': () => {
     const s = SUBJ();
@@ -1173,7 +1264,9 @@ PAGES.metrics = {
       </div>
       <div class="chart-wrap" id="chartHost"></div>
       <div class="legend" id="chartLegend"></div>`, '每条线独立归一化，因此<b>不同指标的高低不可比较</b>；单点只画点不连线')}
-    ${notice('治疗事件（手术 / 放疗 / 发音管）画在上方的菱形与虚线上，和数据区是分层的 —— 它们不是数值，不能被读成曲线的一部分。')}`,
+    <div id="chartReadout"></div>
+    ${notice('治疗事件（手术 / 放疗 / 发音管）画在上方的菱形与虚线上，和数据区是分层的 —— 它们不是数值，不能被读成曲线的一部分。')}
+    ${notice(`想把某一个指标单独看全（含全部历史点），去<b>「指标卡片」</b>点开那张卡的背面：那里是这个指标自己的完整曲线，不受这里的时间窗限制。`)}`,
   '分级说明': () => {
     const s = SUBJ();
     return `

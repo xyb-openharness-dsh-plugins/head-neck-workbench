@@ -175,8 +175,45 @@ with sync_playwright() as p:
     doc_w = page.evaluate("() => document.documentElement.scrollWidth")
     ok('390 宽下页面无横向溢出', doc_w <= 391, f'scrollWidth={doc_w}')
 
-    page.evaluate("() => { STATE.page='metrics'; STATE.tab='指标卡片'; render(); }")
+    # 卡片背面必须是趋势曲线，不是文字表格（用户 m09018 手工验收反馈：
+    # 「3D 指标反转卡片，反转后应该是折线图，看趋势，不是文字」）
+    page.evaluate("""() => { STATE.page='metrics'; STATE.tab='指标卡片'; render(); }""")
     page.wait_for_timeout(150)
+    back = page.evaluate("""() => {
+      const c = document.querySelector('.metric-card[data-metric="weight"]');
+      c.click();                                     // 展开翻转，读背面真实 DOM
+      const svg = c.querySelector('.mc-face.back svg');
+      const pts = c.querySelector('.mc-back-body').textContent;
+      return {
+        hasSvg: !!svg,
+        line: c.querySelectorAll('.mc-face.back path.spark-line').length,
+        dots: c.querySelectorAll('.mc-face.back circle').length,
+        tables: c.querySelectorAll('.mc-face.back table').length,
+        dates: svg ? svg.querySelectorAll('text').length : 0,
+        h: Math.round(c.getBoundingClientRect().height)
+      };
+    }""")
+    ok('卡片背面是趋势曲线（有折线 path 与数据点）',
+       back['hasSvg'] and back['line'] == 1 and back['dots'] >= 3, str(back))
+    ok('卡片背面不再是文字表格', back['tables'] == 0, f"table={back['tables']}")
+    ok('翻转后卡片高度不变（固定 276）', back['h'] == 276, f"实际 {back['h']}")
+    # 单点不连线：把某指标裁到只剩 1 个点，背面只应有圆点没有 path
+    one = page.evaluate("""() => {
+      const keep = DEMO.A.obs.filter(o => o.code !== 'weight');
+      const first = DEMO.A.obs.filter(o => o.code === 'weight').sort((a,b)=> a.on<b.on?-1:1)[0];
+      const saved = DEMO.A.obs;
+      DEMO.A.obs = keep.concat([first]);
+      STATE.page='metrics'; STATE.tab='指标卡片'; render();
+      const c = document.querySelector('.metric-card[data-metric=\"weight\"]');
+      const r = { line: c.querySelectorAll('.mc-face.back path.spark-line').length,
+                  dots: c.querySelectorAll('.mc-face.back circle').length,
+                  txt: c.querySelector('.mc-back-body').textContent };
+      DEMO.A.obs = saved;
+      return r;
+    }""")
+    ok('单点只画点不连线（背面同理）',
+       one['line'] == 0 and one['dots'] == 1 and '只有 1 个点' in one['txt'], str(one))
+
     h = page.eval_on_selector('.metric-card', 'el => Math.round(el.getBoundingClientRect().height)')
     ok('指标卡固定高度 276（不因内容撑开）', h == 276, f'实际 {h}')
 
@@ -188,6 +225,21 @@ with sync_playwright() as p:
     }""")
     ok('图表横向滚动只在容器内，页面不溢出',
        cb['sw'] > cb['cw'] and cb['doc'] <= 391, str(cb))
+
+    # 一图秀必须给出「读数」，且明确不是医学判断（用户 m09018 第二条反馈）
+    ro = page.evaluate("""() => {
+      const host = document.querySelector('#chartReadout');
+      const txt = (host && host.textContent || '').replace(/\s+/g,' ');
+      return {
+        exists: !!host && !!host.querySelector('.card'),
+        rows: host ? host.querySelectorAll('table.tbl tbody tr').length : 0,
+        unit: /kg|g\/L|dL|mm|%/.test(txt),
+        disclaimer: /不是医学判断/.test(txt),
+        src: /来源/.test(txt)
+      };
+    }""")
+    ok('一图秀有读数块且逐条给原始数值', ro['exists'] and ro['rows'] >= 3 and ro['unit'], str(ro))
+    ok('读数明确写「不是医学判断」并带来源', ro['disclaimer'] and ro['src'], str(ro))
 
     browser.close()
 
