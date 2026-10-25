@@ -224,6 +224,7 @@ details.fold .body{padding:12px 14px}
   *{transition:none!important;animation:none!important}
 }
 </style>
+<link rel="stylesheet" href="primer.css">
 </head>
 <body>
 <div class="topbar">
@@ -236,6 +237,7 @@ details.fold .body{padding:12px 14px}
     <button class="mini" id="btnMenu" style="display:none">目录</button>
     <button class="mini" id="btnAgent" aria-pressed="false">AI 助手</button>
     <button class="mini" id="btnPrint">打印本页</button>
+    <button type="button" class="dp-trigger" data-primer-open aria-label="疾病概要：定义、医学资料与指南情况、治疗全景、发展趋势" title="疾病概要：定义 · 指南 · 治疗全景 · 趋势">?</button>
   </div>
 </div>
 
@@ -1459,5 +1461,7 @@ function init(){
 
 document.addEventListener('DOMContentLoaded', init);
 </script>
+<script src="primer-data.js"></script>
+<script src="primer.js"></script>
 </body>
 </html>

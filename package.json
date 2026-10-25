@@ -27,6 +27,7 @@
     "release:check": "npm run check && npm run audit",
     "pack:check": "npm pack --dry-run",
     "check:prototype": "python3 scripts/verify_prototype.py",
+    "probe:primer": "node scripts/probe-disease-primer.mjs",
     "build:public": "node scripts/build-public.mjs",
     "check:public": "node scripts/build-public.mjs --check",
     "check:schema": "node scripts/check-schema-draft.mjs",
