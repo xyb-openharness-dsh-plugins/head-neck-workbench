@@ -55,9 +55,12 @@ function candidates() {
     list.push({ label: 'DSH_HOME 环境变量', home: resolve(process.env.DSH_HOME), profile: explicitProfile || 'web' });
   }
 
+  // 本机同时装着两个 app：DSH Desktop（工作台产品）与 DeepSeek Harness（Agent 宿主）。
+  // 后者用 `--profile ~/.dsh/profiles/desktop`，它的 bundles 里没有任何工作台——
+  // 装到那里重启多少次都不会加载，所以标签必须写清「不装工作台」而不是「Desktop 不读」。
   const cliHome = join(homedir(), '.dsh');
   list.push({ label: 'CLI Harness（Desktop 不读）', home: cliHome, profile: 'web' });
-  list.push({ label: '旧结论 desktop profile（Desktop 不读）', home: cliHome, profile: 'desktop' });
+  list.push({ label: 'DeepSeek Harness.app 的 Agent profile（不装工作台）', home: cliHome, profile: 'desktop' });
   return list;
 }
 
@@ -66,10 +69,13 @@ function readProfile(home, profile) {
   if (!existsSync(file)) return null;
   try {
     const json = JSON.parse(readFileSync(file, 'utf8'));
+    const bundles = json.dsh?.profile?.bundles ?? [];
     return {
       file,
       dep: json.dependencies?.[NAME] ?? null,
-      bundled: (json.dsh?.profile?.bundles ?? []).includes(NAME),
+      bundled: bundles.includes(NAME),
+      // 兄弟工作台数量：一个 0 的 profile 不是「加载工作台的那个」
+      siblings: bundles.filter((b) => b !== NAME && /-workbench$/.test(b)).length,
     };
   } catch (error) {
     return { file, error: error.message };
@@ -120,6 +126,12 @@ if (!live) {
   } else {
     ok = true;
     lines.push(`✓ ${NAME} 已登记到 Desktop 实际加载的 profile（${entry.dep}）`);
+    if (typeof entry.siblings === 'number' && entry.siblings === 0) {
+      lines.push('!  这个 profile 里没有其它工作台——请确认它真是 DSH Desktop 加载工作台的那个 profile；');
+      lines.push('   装到 DeepSeek Harness.app 的 Agent profile（~/.dsh/profiles/desktop）里永远不会加载。');
+    } else if (entry.siblings) {
+      lines.push(`· 同 profile 另有 ${entry.siblings} 个兄弟工作台——这是加载工作台的 profile，判定可信。`);
+    }
     const rec = marketRecord(live.home);
     lines.push(
       rec

@@ -350,3 +350,28 @@ logs 里 `[plugin-recovery] removing` 出现在我执行 remove 之前）。bund
 2. **反向对照不能省**：把 0.72 放回去必须退出码 1。只签绿灯的烟测等于一个新的错觉来源。
 3. **静态闸门与动态烟测是两层，不是替代**：静态查「写了什么」（能覆盖所有分支、跑得快），
    动态查「跑起来会不会炸」（能覆盖实际执行路径）。两层都过才敢说「装进去能活」。
+
+## 17. 「重启就能看到了」——先确认你重启的是哪个 App
+
+**症状**：0.1.3/0.1.4/0.1.5 都装好了、`check-install` 报「已登记」、`diff -r` 0 差异，
+可界面始终等不到；我连续三轮在报告里写「等你重启」，用户重启的窗口里却永远不会出现它。
+
+**根因**：本机同时装着两个用同一套 harness 的 app，各有各的 profile：
+
+| app | 用途 | profile | bundles 里的工作台 |
+| --- | --- | --- | --- |
+| `DSH Desktop.app` | 工作台产品（患者/家属用的那个） | `~/Library/Application Support/dsh-desktop/harness/profiles/web` | 34 项，其中 17 个兄弟工作台 |
+| `DeepSeek Harness.app` | Agent 宿主（我现在跑在里面） | `~/.dsh/profiles/desktop`（命令行 `--profile` 明写） | **0 个** |
+
+装到后者，重启一万次也不会加载。判据不是路径长得像，而是
+**那个 profile 的 `dsh.profile.bundles` 里有没有别的兄弟工作台**——有，才是加载工作台的那个。
+`scripts/check-install.mjs` 现在会把这条打印出来（本次实测「另有 17 个兄弟工作台」）。
+
+**第二个坑：无时间戳的日志行不能按时间切**。`harness.log` 里 `[renderer] web boot: 1 entry did not activate`
+**不带 ISO 时间**，于是 0.1.2 时代那次失败的日志永远留在文件里，任何「扫一遍日志找 failed」的脚本
+都会把它当成本次失败。正确切法是先用最后一条 `Harness process exited` 把文件切成「上次运行 / 本次运行段」，
+只看本次段；并且 `did not activate` 这行**不带包名**，只按包名过滤会漏掉整条信号。
+
+**元教训**：核验脚本自己也要有反例。上面两个错误都是被 `test/desktop-load.test.mjs` 的五条样例
+抓出来的（未运行 / 旧日志不算数 / 本次段失败 / 装错 profile / 已加载），
+写完先喂它几个假现场，比在真机上猜快得多。
