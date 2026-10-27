@@ -3,14 +3,27 @@
  * 全部内容属第 ② 层（解释）：只写定义、文件、指南列举过的手段、已发生的变化。
  * 任何「你该怎么办」的判断都不在这里，固定出口是「这一句需要问你的医生」。
  *
- * 原件状态：NCCN / CSCO / AJCC / 各共识均未取得原件；
+ * 原件状态：NCCN / CSCO / AJCC / 各共识均未取得原件，未存档；
+ * 各条「据二次来源」链接均为出版方页 / 官方索引 / 权威转载，2026-10-27 逐条用
+ * verify-links.mjs 验活为 OK。链接可达 ≠ 原件已存档。
  * 指南版本号只在项目自己的记录里出现过「2026.1」，更新日期未核实，页码一律「页码待核」。
  */
+
+/* 二次来源链接（36 号 §2.5）：只接受 https://，不编 URL。 */
+const LINK = {
+  nccn: 'https://www.nccn.org/guidelines/guidelines-detail?category=1&id=1437',
+  csco: 'https://www.sichuancancer.org/info/1601/11661.htm',
+  ajcc: 'https://www.facs.org/quality-programs/cancer-programs/american-joint-committee-on-cancer/cancer-staging-systems/',
+  pdl1: 'https://drugs.dxy.cn/pc/clinicalGuidelines/pQWhH-h2_xoRRW7j2r6gOxg?ky=t70PD.html',
+  ici: 'https://openurl.ebsco.com/fulltext/gcd:177695074?sid=ebsco:plink:crawler-gcd&id=ebsco:gcd:177695074&crl=f&jrnl=10073639',
+  mucositis: 'https://www.cndent.com/archives/94655'
+};
+
 window.DISEASE_PRIMER = {
   brand: '小嗓宝 VoicePal',
   name: '头颈癌',
   en: 'Head and Neck Cancer',
-  updated: '2026-10-25',
+  updated: '2026-10-27',
   sections: [
     {
       id: 'definition',
@@ -25,24 +38,24 @@ window.DISEASE_PRIMER = {
         '功能代价（发声、吞咽、气道）与原发部位、手术与放疗范围相关，本台单列「气道与造口」「声音与沟通」两页。'
       ],
       sources: [
-        { org: 'AJCC', doc: 'Cancer Staging Manual, 8th ed.（头颈章节）', version: '第 8 版（年份未核实）', original: false, page: '页码待核' },
-        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（版本未核实）', original: false, page: '页码待核' }
+        { org: 'AJCC', doc: 'Cancer Staging Manual, 8th ed.（头颈章节）', version: '第 8 版（年份未核实）', original: false, secondaryUrl: LINK.ajcc, page: '页码待核' },
+        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（版本未核实）', original: false, secondaryUrl: LINK.nccn, page: '页码待核' }
       ]
     },
     {
       id: 'evidence',
       title: '医学资料规范和指南情况',
       intro: '这台工作台里出现的每一条「该查什么、该怎么记」，都应能追到下面某一份文件。'
-        + '本项目对下面所有文件都没有取得原件——表格里照实写，不假装看过。',
+        + '本项目对下面所有文件都没有取得原件、未存档；表格里的「据二次来源」是可点开的出版方页 / 官方索引 / 权威转载。',
       table: {
         head: ['机构', '文件', '版本 / 年份', '原件', '本台的用途'],
         rows: [
-          ['NCCN', 'NCCN Guidelines · Head and Neck Cancers', '2026.1（版本与更新日期未核实）', '未取得原件', '范围参照；不引用具体条文'],
-          ['CSCO', 'CSCO 头颈肿瘤诊疗指南', '版本未核实', '未取得原件', '仅登记其存在，不作引用依据'],
-          ['AJCC', 'Cancer Staging Manual, 8th ed.（头颈章节）', '第 8 版（年份未核实）', '未取得原件', 'TNM 分期口径（原型按第 8 版记录）'],
-          ['中华医学会病理学分会等', '头颈部鳞癌 PD-L1 表达检测专家共识（中华病理学杂志 2024;53(11):1097）', '2024', '未取得原件', 'PD-L1 检测与判读口径；本台只记原值'],
-          ['中国抗癌协会等', '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）（中国癌症杂志 2024;34(4)）', '2024', '未取得原件', '复发 / 转移情形的手段列举'],
-          ['中华口腔医学会', '放（化）疗性口腔黏膜炎的预防和治疗专家共识（团体标准草案，标准号仍为占位）', '38 页草案', '未取得原件', '黏膜炎分级口径对照；本台采用 WHO 分级，不采用 CTCAE']
+          ['NCCN', 'NCCN Guidelines · Head and Neck Cancers', '2026.1（版本与更新日期未核实）', { text: '未取得原件，据二次来源', url: LINK.nccn }, '范围参照；不引用具体条文'],
+          ['CSCO', 'CSCO 头颈肿瘤诊疗指南', '2025 版（2025-07-01 发布，据执笔单位信息）', { text: '未取得原件，据二次来源', url: LINK.csco }, '仅登记其存在，不作引用依据'],
+          ['AJCC', 'Cancer Staging Manual, 8th ed.（头颈章节）', '第 8 版（年份未核实）', { text: '未取得原件，据二次来源', url: LINK.ajcc }, 'TNM 分期口径（原型按第 8 版记录）'],
+          ['中华医学会病理学分会等', '头颈部鳞癌 PD-L1 表达检测专家共识（中华病理学杂志 2024;53(11):1097）', '2024', { text: '未取得原件，据二次来源', url: LINK.pdl1 }, 'PD-L1 检测与判读口径；本台只记原值'],
+          ['中国抗癌协会等', '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）（中国癌症杂志 2024;34(4)）', '2024', { text: '未取得原件，据二次来源', url: LINK.ici }, '复发 / 转移情形的手段列举'],
+          ['中华口腔医学会', '放（化）疗性口腔黏膜炎的预防和治疗专家共识（团体标准公告第 74 项；标准号未核，本台以占位记录）', '38 页', { text: '未取得原件，据二次来源', url: LINK.mucositis }, '黏膜炎分级口径对照；本台采用 WHO 分级，不采用 CTCAE']
         ]
       },
       points: [
@@ -52,12 +65,12 @@ window.DISEASE_PRIMER = {
         '口咽癌与非口咽癌的分期规则不同，本台按报告与医生记录的口径照抄，不自行判断适用哪一套。'
       ],
       sources: [
-        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（未核实）', original: false, page: '页码待核' },
-        { org: 'CSCO', doc: 'CSCO 头颈肿瘤诊疗指南', version: '版本未核实', original: false, page: '页码待核' },
-        { org: 'AJCC', doc: 'Cancer Staging Manual, 8th ed.（头颈章节）', version: '第 8 版（年份未核实）', original: false, page: '页码待核' },
-        { org: '中华医学会病理学分会等', doc: '头颈部鳞癌 PD-L1 表达检测专家共识', version: '2024（中华病理学杂志 2024;53(11):1097）', original: false, page: '页码待核' },
-        { org: '中国抗癌协会等', doc: '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）', version: '2024（中国癌症杂志 2024;34(4)）', original: false, page: '页码待核' },
-        { org: '中华口腔医学会', doc: '放（化）疗性口腔黏膜炎的预防和治疗专家共识（团体标准草案）', version: '38 页草案（标准号仍为占位）', original: false, page: '页码待核' }
+        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（未核实）', original: false, secondaryUrl: LINK.nccn, page: '页码待核' },
+        { org: 'CSCO', doc: 'CSCO 头颈肿瘤诊疗指南', version: '2025 版（2025-07-01 发布，据执笔单位信息）', original: false, secondaryUrl: LINK.csco, page: '页码待核' },
+        { org: 'AJCC', doc: 'Cancer Staging Manual, 8th ed.（头颈章节）', version: '第 8 版（年份未核实）', original: false, secondaryUrl: LINK.ajcc, page: '页码待核' },
+        { org: '中华医学会病理学分会等', doc: '头颈部鳞癌 PD-L1 表达检测专家共识', version: '2024（中华病理学杂志 2024;53(11):1097）', original: false, secondaryUrl: LINK.pdl1, page: '页码待核' },
+        { org: '中国抗癌协会等', doc: '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）', version: '2024（中国癌症杂志 2024;34(4)）', original: false, secondaryUrl: LINK.ici, page: '页码待核' },
+        { org: '中华口腔医学会', doc: '放（化）疗性口腔黏膜炎的预防和治疗专家共识（团体标准公告第 74 项）', version: '38 页（标准号未核，本台以占位记录）', original: false, secondaryUrl: LINK.mucositis, page: '页码待核' }
       ]
     },
     {
@@ -103,8 +116,8 @@ window.DISEASE_PRIMER = {
         '以上是文献与指南里列出的手段，按病期与线序排列，不代表任何一项适合你。选哪一个，这一句需要问你的医生。'
       ],
       sources: [
-        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（未核实）', original: false, page: '页码待核' },
-        { org: '中国抗癌协会等', doc: '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）', version: '2024', original: false, page: '页码待核' }
+        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（未核实）', original: false, secondaryUrl: LINK.nccn, page: '页码待核' },
+        { org: '中国抗癌协会等', doc: '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）', version: '2024', original: false, secondaryUrl: LINK.ici, page: '页码待核' }
       ]
     },
     {
@@ -115,14 +128,15 @@ window.DISEASE_PRIMER = {
       points: [
         '2024 年：《头颈部鳞癌 PD-L1 表达检测专家共识》刊于中华病理学杂志 2024;53(11):1097。',
         '2024 年：《复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）》刊于中国癌症杂志 2024;34(4)。',
-        '2026-10-25：本项目桌面检索记录显示，《放（化）疗性口腔黏膜炎的预防和治疗专家共识》仍为团体标准草案，标准号为 T/XXX XXXX—XXXX 占位；本项目未取得原件。',
+        '2025-07-01：四川省肿瘤医院（指南执笔单位）发布信息显示，《CSCO 头颈部肿瘤诊疗指南 2025 版》在 2025 CSCO 指南大会发布；本台未取得原件。',
+        '2026-10-25：本项目桌面检索记录显示，《放（化）疗性口腔黏膜炎的预防和治疗专家共识》标准号未核（本台以 T/XXX XXXX—XXXX 占位记录）；本项目未取得原件。',
         '2026 年：NCCN 头颈癌指南的版本号在项目演示数据中记为 2026.1；本项目未取得原件，更新日期未核实。'
       ],
       sources: [
-        { org: '中华医学会病理学分会等', doc: '头颈部鳞癌 PD-L1 表达检测专家共识', version: '2024（中华病理学杂志 2024;53(11):1097）', original: false, page: '页码待核' },
-        { org: '中国抗癌协会等', doc: '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）', version: '2024（中国癌症杂志 2024;34(4)）', original: false, page: '页码待核' },
-        { org: '中华口腔医学会', doc: '放（化）疗性口腔黏膜炎的预防和治疗专家共识（团体标准草案）', version: '草案（标准号仍为占位）', original: false, page: '页码待核' },
-        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（未核实）', original: false, page: '页码待核' }
+        { org: '中华医学会病理学分会等', doc: '头颈部鳞癌 PD-L1 表达检测专家共识', version: '2024（中华病理学杂志 2024;53(11):1097）', original: false, secondaryUrl: LINK.pdl1, page: '页码待核' },
+        { org: '中国抗癌协会等', doc: '复发／转移性头颈部鳞癌免疫检查点抑制剂治疗专家共识（2024 年版）', version: '2024（中国癌症杂志 2024;34(4)）', original: false, secondaryUrl: LINK.ici, page: '页码待核' },
+        { org: '中华口腔医学会', doc: '放（化）疗性口腔黏膜炎的预防和治疗专家共识（团体标准公告第 74 项）', version: '38 页（标准号未核，本台以占位记录）', original: false, secondaryUrl: LINK.mucositis, page: '页码待核' },
+        { org: 'NCCN', doc: 'NCCN Guidelines · Head and Neck Cancers', version: '2026.1（未核实）', original: false, secondaryUrl: LINK.nccn, page: '页码待核' }
       ]
     }
   ]

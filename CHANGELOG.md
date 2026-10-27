@@ -1,3 +1,28 @@
+## 0.1.7 — 2026-10-27
+
+36 号疾病概要 v2 补齐（指南可点+状态卡）。
+
+- **指南原件/二次来源必须可点（36 号 §2.5）**：`primer-data.js` 里 evidence 表 6 行「原件」列
+  由纯文字改为 `{ text, url }` 对象；四段 `sources` 共 14 处 `original:false` 全部补
+  `secondaryUrl`。6 个唯一 URL 均用 `verify-links.mjs` 以真浏览器验活为 **OK**（2026-10-27）：
+  NCCN 指南索引页、CSCO 2025 版发布信息（执笔单位）、AJCC/ACS 分期系统页、
+  PD-L1 共识（DXY 指南页）、ICI 共识（EBSCO 全文页）、口腔黏膜炎共识（中华口腔医学会公告页）。
+  **仍未取得任何指南原件**，表格文案与 `note` 照实写「未取得原件，据二次来源」，没有编 URL。
+- **模式层同步**：`primer.js` / `primer.css` 覆盖为 starter 2026-10-27 版（含 §4.3 排版修复：
+  正文不设 `max-width`、列表缩进移到 `li`、表格 `min-width:640px` 横向滚动、链接/缺链接样式）。
+  项目无 `--brand/--violet/--accent`，在 `:root` 增加 `--brand: var(--teal)` 别名保持品牌色。
+- **看板状态卡（36 号 §2.6）**：看板首卡新增四件结构——`D+N 状态卡 · 待初始化` eyebrow／
+  `待初始化` 大字（无锚点日，天数不手填）／现状行（阶段原文 + 状态 + 下次日期与事项）／
+  出口按钮排（主按钮进「资料与导出」三步初始化，副按钮「疾病概要：头颈癌是什么？」开浮窗）。
+- **装机副本补齐 primer 三件套**：`scripts/build-public.mjs` 现在除生成 `public/index.html` 外，
+  逐字节同步 `public/primer.css`、`public/primer-data.js`、`public/primer.js`，`--check` 一并比对。
+  此前 `public/` 只有 index.html 与 live.js，装机后 `?` 入口会 404。
+- **新增闸门**：`scripts/check-primer-links.mjs`（L1–L6 链接完整性）已接到 `npm run check` 末尾；
+  `scripts/probe-disease-primer.mjs` 升级为 starter 最新版（P1–P9，含 §4.3 三档排版对齐）。
+
+**验证**：链接断言 20/20 PASS；探针 10/10 PASS（1440/900/390 三档 P9 对齐）；
+`npm run check` 全绿（含 23 条测试）。装机副本刷新与真机抽查未做（需宿主）。
+
 ## 0.1.6 — 2026-10-25
 
 用户手工验收反馈（m09018）的两条，都是「看起来有、其实没有」：
